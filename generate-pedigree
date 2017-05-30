@@ -1,0 +1,400 @@
+import random
+
+class Family(object):
+    '''
+    Represents a randomly g
+    enerated pedigree given particular
+    assumptions: Maximum number of generations per family = 4
+                 Maximum number of children per pair = 10
+    
+    Contains functions to generate:
+        get_family_ID = unique ID for each family
+        get_ind_ID = unique ID for each individual
+        get_num_gens = number of generations per pedigree
+        get_num_children = number of children each pair produces
+        get_gender = assign gender to each individual
+        initialize_founders = generate a founder pair for pedigree
+        make_gen2 = make a second generation from founder pair
+        initialize_gen2_couples = make pairs using second generation
+    '''
+
+    family_ID = 0
+    ind_ID = 0
+
+    def __init__(self):
+        '''initializes family with a unique family ID'''
+        Family.family_ID += 1
+
+    def get_family_ID(self):
+        '''returns unique family ID'''
+        return self.family_ID
+
+    def get_ind_ID(self):
+        '''returns unique individual ID'''
+        Family.ind_ID += 1
+        return self.ind_ID
+
+    def get_num_gens(self):
+        '''
+        randomly assigns a number of generations to a family instance
+        with minimum value of 2 and maximum value of 4
+        '''
+        num_gens = random.randint(2,4)
+        return num_gens
+
+    def get_num_children(self):
+        '''
+        randomly assigns number of children to a couple. Assumes minimum
+        value of 1 and maximum value of 10
+        '''
+        num_children = random.randint(1,10) 
+        return num_children
+
+    def get_gender(self):
+        '''
+        randomly assigns gender to an individual 1 = male, 2 =
+        female
+        '''
+        gender = random.randint(1,2)
+        return gender
+
+    def initialize_founders(self):
+        '''
+        assigns founder pair same unique family ID, unique individual
+        ID, gender, and number of children
+
+        returns a list inf the format [Family ID Number, (Father ID
+        Number, Gender), (Mother ID Number, Gender), Number of Children,
+        Number of Generations]
+        '''
+        founder_pair = []
+        fam_ID = self.get_family_ID()
+        num_children = self.get_num_children()
+        num_gens = self.get_num_gens()
+        founder_pair.append(fam_ID)
+        founder_pair.append((self.get_ind_ID(), 1))
+        founder_pair.append((self.get_ind_ID(), 2))
+        founder_pair.append(num_children)
+        founder_pair.append(num_gens)
+        return founder_pair
+
+    
+#to debug initialize founders
+#founder_list = []
+#x = 0
+#while x < 10:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    founder_list.append(new_found)
+#    x += 1
+#print founder_list
+
+
+    def make_gen2(self, founder_pair):
+        '''
+        makes the second generation given a founder pair
+
+        returns a list of lists representing each child of founder pair
+        [Family ID Number, Individual ID Number, Gender, Father ID
+        Number, Mother ID Number, Number of People in Generation, 
+        Number of Generations in Family]
+        '''
+        fam_ID = founder_pair[0]
+        num_children = founder_pair[3]
+        father_ID = founder_pair[1][0]
+        mother_ID = founder_pair[2][0]
+        num_gens = founder_pair[4]
+        gen2 = []
+        for child in range(num_children):
+            child_ID = self.get_ind_ID()
+            child_gender = self.get_gender()
+            child_info = [fam_ID, child_ID, child_gender, father_ID,
+                          mother_ID, num_children, num_gens]
+            gen2.append(child_info)
+        return gen2
+    
+#to debug make_gen2
+#gen2_list = []
+#x = 0
+#while x < 10:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    gen2 = new_fam.make_gen2(new_found)
+#    gen2_list.append(gen2)
+#    x += 1
+#print gen2_list
+
+    
+    def initialize_gen2_paris(self, founder_pair, gen2):
+        '''
+        assigns a partner of opposite gender to every individual in the
+        second generation given a founder pair and list of individuals
+        in the second generation
+
+        returns a list of lists in the format
+        [Family ID Number, (Father ID Number, Gender), (Mother ID
+        Number, Gender), Number of Children, Number of Generations in Family]
+        '''
+        new_pairs = []
+        num_founder_children = founder_pair[3]
+        num_gens = founder_pair[4]
+        for family in range(len(gen2)-(len(gen2)-1)):
+            for person in range(len(gen2)):
+                fam_ID = gen2[person][0]
+                parent1_ID = gen2[person][1]
+                parent1_gender = gen2[person][2]
+                parent2_ID = self.get_ind_ID()
+                num_children = self.get_num_children()
+                if parent1_gender == 1:
+                    parent2_gender = 2
+                    new_pairs.append([fam_ID,
+                                      (parent1_ID, parent1_gender),
+                                      (parent2_ID, parent2_gender),
+                                      num_children, num_gens])
+                else:
+                    parent2_gender = 1
+                    new_pairs.append([fam_ID,
+                                      (parent2_ID, parent2_gender),
+                                      (parent1_ID, parent1_gender),
+                                      num_children, num_gens])
+        return new_pairs
+
+#to debug initialize_gen2_pairs
+#gen2_list = []
+#gen2_pairs_list = []
+#x = 0
+#while x < 5:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    gen2 = new_fam.make_gen2(new_found)
+#    gen2_list.append(gen2)
+#    gen2_pairs = new_fam.initialize_gen2_paris(new_found, gen2)
+#    gen2_pairs_list.append(gen2_pairs)
+#    x += 1
+#print "Second Generation", gen2_list
+#print "Second Generation Pairs", gen2_pairs_list
+
+
+    def make_gen3(self, gen2_pairs):
+        '''
+        makes the third generation given second generation pairs
+
+        returns a list of lists representing each child of second
+        generation pairs in the format:
+        [Family ID Number, Individual ID Number, Gender, Father ID
+        Number, Mother ID Number, Number of People in Generation, 
+        Number of Generations in Family]
+        '''
+        gen3 = []
+        for family in range(len(gen2_pairs)-(len(gen2_pairs)-1)):
+            for pair in range(len(gen2_pairs)):
+                fam_ID = gen2_pairs[pair][0]
+                father_ID = gen2_pairs[pair][1][0]
+                mother_ID = gen2_pairs[pair][2][0]
+                num_children = gen2_pairs[pair][3]
+                num_gens = gen2_pairs[pair][4]
+                for child in range(num_children):
+                    child_ID = self.get_ind_ID()
+                    child_gender = self.get_gender()
+                    child_info = [fam_ID, child_ID, child_gender,
+                                  father_ID, mother_ID, num_children,
+                                  num_gens]
+                    gen3.append(child_info)
+        return gen3
+
+#to debug make_gen3
+#gen2_list = []
+#gen2_pairs_list = []
+#gen3_list = []
+#x = 0
+#while x < 10:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    gen2 = new_fam.make_gen2(new_found)
+#    gen2_list.append(gen2)
+#    gen2_pairs = new_fam. initialize_gen2_paris(new_found, gen2)
+#    gen2_pairs_list.append(gen2_pairs)
+#    gen3 = new_fam.make_gen3(gen2_pairs)
+#    gen3_list.append(gen3)
+#    x += 1
+#print "Second Generation", gen2_list
+#print "Second Generation Pairs", gen2_pairs_list
+#print "Third Generation", gen3_list
+                              
+
+    def initialize_gen3_pairs(self, gen3):
+         '''
+         assigns a partner of opposite gender to every individual in
+         the third generation to every individual in the thrid
+         generation given a list of the third generation
+
+         returns a list of lists in the format
+         [Family ID Number, (Father ID Number, Gender), (Mother ID
+         Number, Gender), Number of Children, Number of Generations]
+         '''
+         new_pairs = []
+         for family in range(len(gen3)-(len(gen3)-1)):
+             for person in range(len(gen3)):
+                 fam_ID = gen3[person][0]
+                 parent1_ID = gen3[person][1]
+                 parent1_gender = gen3[person][2]
+                 parent2_ID = self.get_ind_ID()
+                 num_children = self.get_num_children()
+                 num_gens = gen3[person][6]
+                 if parent1_gender == 1:
+                     parent2_gender = 2
+                     new_pairs.append([fam_ID,
+                                       (parent1_ID, parent1_gender),
+                                       (parent2_ID, parent2_gender),
+                                       num_children, num_gens])
+                 else:
+                     parent2_gender = 1
+                     new_pairs.append([fam_ID,
+                                       (parent2_ID, parent2_gender),
+                                       (parent1_ID, parent1_gender),
+                                       num_children, num_gens])
+         return new_pairs
+
+##to debug initialize_gen3_pairs
+#founder_list = []
+#gen2_list = []
+#gen2_pairs_list = []
+#gen3_list = []
+#gen3_pairs_list = []
+#x = 0
+#while x < 5:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    founder_list.append(new_found)
+#    num_gens = new_found[4]
+#    gen2 = new_fam.make_gen2(new_found)
+#    gen2_list.append(gen2)
+#    gen2_pairs = new_fam.initialize_gen2_paris(new_found, gen2)
+#    gen2_pairs_list.append(gen2_pairs)
+#    if num_gens >= 3:
+#        gen3 = new_fam.make_gen3(gen2_pairs)
+#        gen3_list.append(gen3)
+#        gen3_pairs = new_fam.initialize_gen3_pairs(gen3)
+#        gen3_pairs_list.append(gen3_pairs)
+#    x += 1
+#print "First Generation"
+#for item in founder_list:
+#    print item
+#print "Second Generation"
+#for item in gen2_list:
+#    print item
+#print "Second Generation Pairs"
+#for item in gen2_pairs_list:
+#    print item
+#print "Third Generation"
+#for item in gen3_list:
+#    print item
+#print "Third Generation Pairs"
+#for item in gen3_pairs_list:
+#    print item
+
+
+    def make_gen4(self, gen3_pairs):
+        '''
+        makes the fourth generation given thrid generation paris
+
+        returns a list of lists representing each child of third
+        generation pairs in the format:
+        [Family ID Number, Individual ID Number, Gender, Father ID
+        Number, Mother ID Number, Number of People in Generation, Number
+        of Generations in Family]
+        '''
+        gen4 = []
+        for family in range(len(gen3_pairs)-(len(gen3_pairs)-1)):
+            for pair in range(len(gen3_pairs)):
+                fam_ID = gen3_pairs[pair][0]
+                father_ID = gen3_pairs[pair][1][0]
+                mother_ID = gen3_pairs[pair][2][0]
+                num_children = gen3_pairs[pair][3]
+                num_gens = gen3_pairs[pair][4]
+                for child in range(num_children):
+                    child_ID = self.get_ind_ID()
+                    child_gender = self.get_gender()
+                    child_info = [fam_ID, child_ID, child_gender,
+                                  father_ID, mother_ID, num_children,
+                                  num_gens]
+                    gen4.append(child_info)
+        return gen4
+
+
+##to debug make_gen4
+#founder_list = []
+#gen2_list = []
+#gen2_pairs_list = []
+#gen3_list = []
+#gen3_pairs_list = []
+#gen4_list = []
+#x = 0
+#while x < 5:
+#    new_fam = Family()
+#    new_found = new_fam.initialize_founders()
+#    founder_list.append(new_found)
+#    num_gens = new_found[4]
+#    gen2 = new_fam.make_gen2(new_found)
+#    gen2_list.append(gen2)
+#    if num_gens >= 3:
+#        gen2_pairs = new_fam.initialize_gen2_paris(new_found, gen2)
+#        gen2_pairs_list.append(gen2_pairs)
+#        gen3 = new_fam.make_gen3(gen2_pairs)
+#        gen3_list.append(gen3)
+#        if num_gens == 4:
+#            gen3_pairs = new_fam.initialize_gen3_pairs(gen3)
+#            gen3_pairs_list.append(gen3_pairs)
+#            gen4 = new_fam.make_gen4(gen3_pairs)
+#            gen4_list.append(gen4)
+#    x += 1
+#print "First Generation"
+#for item in founder_list:
+#    print item
+#print "Second Generation"
+#for item in gen2_list:
+#    print item
+#print "Second Generation Pairs"
+#for item in gen2_pairs_list:
+#    print item
+#print "Third Generation"
+#for item in gen3_list:
+#    print item
+#print "Third Generation Pairs"
+#for item in gen3_pairs_list:
+#    print item
+#print "Fourth Generation"
+#for item in gen4_list:
+#    print item
+
+                    
+
+    def make_pedigree(self):
+        '''randomly make a complete pedigree'''
+        pedigree = []
+        founders = self.initialize_founders()
+        pedigree.append(founders)
+        gen2 = self.make_gen2(founders)
+        pedigree.append(gen2)
+        num_gens = founders[4]
+        if num_gens >= 3:
+            gen2_pairs = self.initialize_gen2_paris(founders, gen2)
+            gen3 = self.make_gen3(gen2_pairs)
+            pedigree.append(gen3)
+            if num_gens == 4:
+                gen3_pairs = self.initialize_gen3_pairs(gen3)
+                gen4 = self.make_gen4(gen3_pairs)
+                pedigree.append(gen4)
+
+        for gen in range(len(pedigree)):
+            print "Generation", gen+1, pedigree[gen]
+        return pedigree
+        
+
+## to debug make_pedigree
+#x = 1
+#while x <= 5:
+#   print "Family", x
+#    new_fam = Family()
+#    pedigree = new_fam.make_pedigree()
+#    x += 1
