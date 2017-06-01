@@ -370,10 +370,27 @@ class Family(object):
                     
 
     def make_pedigree(self):
-        '''randomly make a complete pedigree'''
+        '''
+        randomly make a complete pedigree
+        
+        returns list for generation 1 in the format [Family ID Number,
+        (Father ID Number, Gender), (Mother ID Number, Gender), Number
+        of Children, Number of Generations in Family]
+
+        returns list of lists for generations 2,3, and 4 
+        containing each individual's information
+        in the format [Family ID Number, Individual ID Number, Gender,
+        Father ID Number, Mother ID Number, Number of People in
+        Generation, Number of Generations in Family] 
+        '''
         pedigree = []
         founders = self.initialize_founders()
-        pedigree.append(founders)
+        founder_formatted = [[founders[0],founders[1][0],
+                              founders[1][1], "--", "--", 2,
+        founders[4]], [founders[0], founders[2][0], founders [2][1],
+                       "--", "--", 2, founders[4]]]
+                
+        pedigree.append(founder_formatted)
         gen2 = self.make_gen2(founders)
         pedigree.append(gen2)
         num_gens = founders[4]
@@ -386,15 +403,40 @@ class Family(object):
                 gen4 = self.make_gen4(gen3_pairs)
                 pedigree.append(gen4)
 
-        for gen in range(len(pedigree)):
-            print "Generation", gen+1, pedigree[gen]
+        #for gen in range(len(pedigree)):
+        #    print "Generation", gen+1, pedigree[gen]
         return pedigree
         
 
 ## to debug make_pedigree
 #x = 1
-#while x <= 5:
-#   print "Family", x
+#while x <= 1:
+#    print "Family", x
 #    new_fam = Family()
 #    pedigree = new_fam.make_pedigree()
 #    x += 1
+#   print pedigree
+
+    def write_pedigree(self, pedigree):
+        '''Writes a textfile containing pedigree information'''
+        new_f = "pedigree.txt"
+        my_pedigree = open(new_f, "w")
+        headers = ["Family ID Number", "Individual ID Number",
+                   "Gender", "Father ID Number",
+                   "Mother ID Number", "Number of People in Generation",
+                   "Number of Generations"]
+        for item in headers:
+            my_pedigree.write("%s \t" % item)
+        my_pedigree.write("\n")
+        for gen in pedigree:
+            for person in gen:
+                for item in person:
+                    my_pedigree.write("%s \t\t\t" % item)
+                my_pedigree.write("\n")
+        my_pedigree.close()
+    
+##to debug write_pedigree
+#new_fam = Family()
+#pedigree = new_fam.make_pedigree()
+#new_fam.write_pedigree(pedigree)
+
