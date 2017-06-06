@@ -1,4 +1,496 @@
 import random
+from datetime import datetime
+now = datetime.now()
+year = now.year
+
+class Pedigree(object):
+    '''
+    The following definitions/abbreviations are used throughout this class
+    Fam ID: Unique family ID
+    Ind ID: Unique individual ID
+    Target: 1 = proband, 0 = other members of pedigree
+    Moth ID: unique ID of mother of individual
+    Fath ID: unique ID of father of individual
+    Gender: gender of individual
+    Twin: 1 = monozygotic twin, 0 = not monozygotic twin
+    Dead: 1 = dead, 0 = alive
+    Age: represents either current age or age at death
+    Birth Year: birth year of individual
+    BrCa_1: integer = age at 1st breast cancer diagnosis, 0 = unaffected
+    BrCa_2: integer = age at 2nd breast cancer diagnosis, 0 = unaffected
+    OvCa: integer = age at diagnosis of ovarian cancer, 0 = unaffected
+    ProCa: integer = age at diagnosis of prostate cancer, 0 = unaffected
+    PanCa: integer = age at diagnosis of pancreatic cancer, 0 = unaffected
+    G Test: genetic test 0 = untested, S = mutation search, 
+            T = direct gene test
+    Mutn: mutation status 0 = untested, N = no mutation, 1 = BRCA 1+, 2 =
+          BRCA2+, 3 = BRCA1+ and BRCA2+
+    Ashkn: 0 = not Ashkanzi, 1 = Ashkenazi
+    For the follwoing variables 0 = unaffected, N = neagtive, P = positive
+    ER: Estrogen receptor status
+    PR: = Progesteron receptor status
+    HER2: = Human epidermal growth factor receptor status
+    CK14: Cytokeratin 14 status 
+    CK56: Cytokeratin 56 status
+    '''
+
+    family_id = 0
+    ind_id = 0
+
+    def __init__(self):
+        '''Initializes a unique family ID for each instance of a pedigree'''
+        Pedigree.family_id += 1
+
+    def get_family_id(self):
+        '''Returns unique family ID when called'''
+        return self.family_id
+
+    def get_ind_id(self):
+        '''Returns unique individual ID when called'''
+        Pedigree.ind_id += 1
+        return self.ind_id
+
+    def get_gender(self):
+        '''Randomly returns either M for male or F for female when called'''
+        gender = random.randint(1,2)
+        if gender == 1:
+            return "M"
+        else:
+            return "F"
+        
+    def init_proband(self):
+        '''
+        Initializes the proband for the pedigree and returns a list in
+        the format:
+        [FamID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, 
+        Mutn, Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        fam_id = self.get_family_id()
+        person_id = self.get_ind_id()
+        target = 1
+        moth_id = None
+        fath_id = None
+        gender = self.get_gender()
+        twin = 0
+        dead = 0
+        age = random.randint(20,65)
+        birth_year = int(year)-int(age)
+        br_ca_dx1 = 0
+        br_ca_dx2 = 0
+        ov_ca_dx = 0
+        pro_ca_dx = 0
+        pan_ca_dx = 0
+        g_test = 0
+        mutn = 0
+        ashkn = 0
+        ER = 0
+        PR = 0
+        HER2 = 0
+        CK14 = 0
+        CK56 = 0
+        proband = []
+        variables = [fam_id, person_id, target, moth_id, fath_id,
+                    gender, twin, dead, age, birth_year, br_ca_dx1,
+                    br_ca_dx2, ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
+                    mutn, ashkn, ER, PR, HER2, CK14, CK56]
+        for variable in variables:
+            proband.append(variable)
+        return proband
+
+##to debug init_proband
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    new_proband = new_ped.init_proband()
+#    print "Proband", x
+#    print new_proband
+#    x += 1
+
+    def add_parents(self, person):
+        '''
+        Adds parent information for an individual
+        Returns a list of lists with information for child, mother,
+        father in the following format:
+        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
+        Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        person_moth_id = person[3]
+        person_fath_id = person[4]
+        if person_moth_id == None and person_fath_id == None:
+            fam_id = person [0]
+            person_moth_id = self.get_ind_id()
+            person_fath_id = self.get_ind_id()
+            moth_id = None
+            fath_id = None
+            target = 0
+            moth_gender = "F"
+            fath_gender = "M"
+            twin = 0
+            child_age = int(person[8])
+            moth_age = random.randint(child_age + 20, child_age + 40)
+            fath_age = random.randint(child_age + 20, child_age + 40)
+            moth_birth_year = int(year) - int(moth_age)
+            fath_birth_year = int(year) - int(fath_age)
+            if moth_age > 90:
+                moth_dead = 1
+                moth_age = 91
+            else:
+                moth_dead = 0
+            if fath_age > 90:
+                fath_dead = 1
+                fath_age = 91
+            else:
+                fath_dead = 0
+            br_ca_dx1 = 0
+            br_ca_dx2 = 0
+            ov_ca_dx = 0
+            pro_ca_dx = 0
+            pan_ca_dx = 0
+            g_test = 0
+            mutn = 0
+            ashkn = 0
+            ER = 0
+            PR = 0
+            HER2 = 0
+            CK14 = 0
+            CK56 = 0
+            moth_variables = [fam_id, person_moth_id, target, moth_id,
+                              fath_id, moth_gender, twin, moth_dead, moth_age,
+                              moth_birth_year, br_ca_dx1, br_ca_dx2,
+                              ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
+                              mutn, ashkn, ER, PR, HER2, CK14, CK56]
+            fath_variables = [fam_id, person_fath_id, target, moth_id,
+                              fath_id, fath_gender, twin, fath_dead, fath_age,
+                              fath_birth_year, br_ca_dx1, br_ca_dx2,
+                              ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
+                              mutn, ashkn, ER, PR, HER2, CK14, CK56]
+            mother = []
+            for variable in moth_variables:
+                mother.append(variable)
+            father = []
+            for variable in fath_variables:
+                father.append(variable)
+            person[3] = person_moth_id
+            person[4] = person_fath_id
+            parents = []
+            parents.append(mother)
+            parents.append(father)
+            return parents
+        else:
+            raise TypeError("This person already has parents")
+        
+##to debug add_parents
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    print "Pedigree", x
+#    new_proband = new_ped.init_proband()
+#    new_parents = new_ped.add_parents(new_proband)
+#    print "Proband", new_proband
+#    print "Mother", new_parents[0]
+#    print "Father", new_parents[1]
+#    x += 1
+
+##to debug expection to add_parents
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    new_proband = new_ped.init_proband()
+#    new_parents = new_ped.add_parents(new_proband)
+#    other_parents = new_ped.add_parents(new_proband)
+
+    def add_partner(self, person):
+        '''
+        Creates a partner given a specific person and randomly generates
+        offspring for pair
+        Returns a list of information for the new partner in
+        the following format:
+        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
+        Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        fam_id = person[0]
+        partner_id = self.get_ind_id()
+        partner_target = 0
+        partner_moth_id = None
+        partner_fath_id = None
+        person_gender = person[5]
+        if person_gender == "M":
+            partner_gender = "F"
+        else:
+            partner_gender = "M"
+        partner_twin = 0
+        partner_dead = 0
+        person_age = int(person[8])
+        partner_age = random.randint(person_age - 15, person_age + 15)
+        if partner_age > 90:
+            partner_age = 91
+            partner_dead = 1
+        partner_birth_year = int(year)-int(partner_age)
+        br_ca_dx1 = 0
+        br_ca_dx2 = 0
+        ov_ca_dx = 0
+        pro_ca_dx = 0
+        pan_ca_dx = 0
+        g_test = 0
+        mutn = 0
+        ashkn = 0
+        ER = 0
+        PR = 0
+        HER2 = 0
+        CK14 = 0
+        CK56 = 0
+        partner = [fam_id, partner_id, partner_target,
+                   partner_moth_id, partner_fath_id,
+                   partner_gender, partner_twin,
+                   partner_dead, partner_age, partner_birth_year,
+                   br_ca_dx1, br_ca_dx2, ov_ca_dx,
+                   pro_ca_dx, pan_ca_dx, g_test, mutn, ashkn, ER,
+                   PR, HER2, CK14, CK56]
+        return partner
+
+##to debug add_partner
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    new_pro = new_ped.init_proband()
+#    family  = new_ped.add_parents(new_pro)
+#    partner = new_ped.add_partner(new_pro)
+#    family.append(partner)
+#    print "Family", x
+#    print "Mother", family[0]
+#    print "Father", family[1]
+#    print "Proband", new_pro
+#    print "Proband Partner", family[2]
+#    x += 1
+
+
+    def add_offspring(self, person1, person2):
+        '''
+        Generates offrsping given 2 parents
+
+        Returns a list of lists with each list representing one child in
+        the following format:
+        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
+        Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        fam_id = person1[0]
+        if person1[5] == "F":
+            moth_id = person1[1]
+            fath_id = person2[1]
+            moth_age = int(person1[8])
+        else:
+            moth_id = person2[1]
+            fath_id = person1[1]
+            moth_age = int(person2[8])
+        num_children = random.randint(0,4)
+        children = []
+        for child in range(num_children):
+            child_id = self.get_ind_id()
+            child_target = 0
+            child_gender = self.get_gender()
+            child_twin = 0
+            child_dead = 0
+            child_age = random.randint(moth_age - 40, moth_age -
+                        20)
+            if child_age <= 0:
+                child_age = 1
+            child_birth_year = int(year) - int(child_age)
+            br_ca_dx1 = 0
+            br_ca_dx2 = 0
+            ov_ca_dx = 0
+            pro_ca_dx = 0
+            pan_ca_dx = 0
+            g_test = 0
+            mutn = 0
+            ashkn = 0
+            ER = 0
+            PR = 0
+            HER2 = 0
+            CK14 = 0
+            CK56 = 0
+            child_variables = [fam_id, child_id, child_target, moth_id,
+                               fath_id, child_gender, child_twin, child_dead,
+                               child_age, child_birth_year, br_ca_dx1,
+                               br_ca_dx2, ov_ca_dx, pro_ca_dx,
+                               pan_ca_dx, g_test, mutn, ashkn, ER,
+                               PR, HER2, CK14, CK56]
+            children.append(child_variables)
+        return children
+
+#to debug add_offspring
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    new_pro = new_ped.init_proband()
+#    new_part = new_ped.add_partner(new_pro)
+#    new_children= new_ped.add_offspring(new_pro, new_part)
+#    print "Pedigree", x
+#    print "Parent 1", new_pro
+#    print "Parent 2", new_part
+#    for child in range(len(new_children)):
+#        print "Child", child+1, new_children[child]
+#    x += 1
+
+    def add_siblings(self, person):
+        '''
+        Given a particular person, generates siblings. Parents must be
+        initialized before creating any siblings
+
+        Returns of list of lists containing the information for each
+        siblings in the following format:
+        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
+        Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        fam_id = person[0]
+        moth_id = person[3]
+        fath_id = person[4]
+        person_age = int(person[8])
+        if moth_id == None and fath_id == None:
+            raise ValueError("Must add parents before adding siblings")
+        else:
+            num_sibs = random.randint(0,4)
+            siblings = []
+
+            for sib in range(num_sibs):
+                sib_id = self.get_ind_id()
+                sib_target = 0
+                sib_gender = self.get_gender()
+                sib_twin = 0
+                sib_dead = 0
+                sib_age = random.randint(person_age - 15, person_age +
+                                         15)
+                sib_birth_year = int(year) - int(sib_age)
+                if sib_age > 90:
+                    sib_dead = 1
+                    sib_age = 91
+                br_ca_dx1 = 0
+                br_ca_dx2 = 0
+                ov_ca_dx = 0
+                pro_ca_dx = 0
+                pan_ca_dx = 0
+                g_test = 0
+                mutn = 0
+                ashkn = 0
+                ER = 0
+                PR = 0
+                HER2 = 0
+                CK14 = 0
+                CK56 = 0
+                sib_variables = [fam_id, sib_id, sib_target, moth_id,
+                                 fath_id, sib_gender, sib_twin, sib_dead,
+                                 sib_age, sib_birth_year, br_ca_dx1,
+                                 br_ca_dx2, ov_ca_dx, pro_ca_dx,
+                                 pan_ca_dx, g_test, mutn, ashkn, ER,
+                                 PR, HER2, CK14, CK56]
+                siblings.append(sib_variables)
+            return siblings
+#to debug add_siblings
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    new_pro = new_ped.init_proband()
+#    new_parents = new_ped.add_parents(new_pro)
+#    new_sibs = new_ped.add_siblings(new_pro)
+#    print "Pedigree", x
+#    print "Mother", new_parents[0]
+#    print "Father", new_parents[1]
+#    print "Proband", new_pro
+#    for sib in range(len(new_sibs)):
+#        print "Sibling", sib+1, new_sibs[sib]
+#    x += 1
+
+    def make_pedigree(self):
+        '''
+        Randomly generates a pedigree of 3 generations with proband in
+        final generation
+
+        Returns a list of lists with information for each pedigree
+        member in the following format:
+        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
+        Ashkn, ER, PR, HER2, CK14, CK56]
+        '''
+        pedigree = []
+        proband = self.init_proband()
+        pedigree.append(proband)
+        pro_parents = self.add_parents(proband)
+        pedigree.append(pro_parents)
+        pro_siblings = self.add_siblings(proband)
+        pedigree.append(pro_siblings)
+        pro_moth_parents = self.add_parents(pro_parents[0])
+        pedigree.append(pro_moth_parents)
+        pro_fath_parents = self.add_parents(pro_parents[1])
+        pedigree.append(pro_fath_parents)
+        pro_moth_siblings = self.add_siblings(pro_parents[0])
+        pedigree.append(pro_moth_siblings)
+        pro_fath_siblings = self.add_siblings(pro_parents[1])
+        pedigree.append(pro_fath_siblings)
+        return pedigree
+
+#to debug make_pedigree
+#x = 1
+#while x <= 5:
+#    new_ped = Pedigree()
+#    pedigree = new_ped.make_pedigree()
+#    proband = pedigree[0]
+#    mother = pedigree[1][0]
+#    father = pedigree[1][1]
+#    pro_siblings = pedigree[2]
+#    pro_moth_parents = pedigree[3]
+#    pro_fath_parents = pedigree[4]
+#    pro_moth_sibs = pedigree[5]
+#    pro_fath_sibs = pedigree[6]
+#    print "Pedigree", x
+#    print "Maternal Grandmother", pro_moth_parents[0]
+#    print "Maternal Grandfather", pro_moth_parents[1]
+#    print "Paternal Grandmother", pro_fath_parents[0]
+#    print "Paternal Grandfather", pro_fath_parents[1]
+#    for sib in range(len(pro_moth_sibs)):
+#        print "Mother's Sibling", sib+1, pro_moth_sibs[sib]
+#    for sib in range(len(pro_fath_sibs)):
+#        print "Father's Sibling", sib+1, pro_fath_sibs[sib]
+#    print "Mother", mother
+#    print "Father", father
+#    print "Proband", proband
+#    for sib in range(len(pro_siblings)):
+#        print "Proband Sibling", sib+1, pro_siblings[sib]
+#    x += 1
+
+    def write_pedigree(self, pedigree):
+        '''
+        Writes pedigree in output specific for BOADICEA import to file pedigree.txt
+        '''
+        formatted_pedigree = []
+        proband = pedigree.pop(0)
+        formatted_pedigree.append(proband)
+        for lst in pedigree:
+            for person in lst:
+                formatted_pedigree.append(person)
+        new_f = "pedigree.txt"
+        my_pedigree = open(new_f, "w")
+        my_pedigree.write("BOADICEA import pedigree file format 2.0 \n")
+        headers = ["FamID", "Target", "IndID", "FathID", "MothID",
+                   "Sex", "Twin", "Dead", "Age", "Yob", "1BrCa",
+                   "2BrCa", "OvCa", "ProCa", "PanCa", "Gtest", "Mutn",
+                   "Ashkn", "ER", "PR", "HER2", "CK14", "CK56"]
+        for item in headers:
+            my_pedigree.write("%s \t" % item)
+        my_pedigree.write("\n")
+        for person in formatted_pedigree:
+            for info in person:
+                my_pedigree.write("%s \t" % info)
+            my_pedigree.write("\n")
+        my_pedigree.close()
+    
+##to debug write_pedigree
+#new_ped = Pedigree()
+#pedigree = new_ped.make_pedigree()
+#w_ped = new_ped.write_pedigree(pedigree)
 
 class Family(object):
     '''
