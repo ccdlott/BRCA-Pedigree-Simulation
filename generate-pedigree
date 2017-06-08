@@ -6,12 +6,13 @@ year = now.year
 class Pedigree(object):
     '''
     The following definitions/abbreviations are used throughout this class
-    Fam ID: Unique family ID
-    Ind ID: Unique individual ID
+    FamID: Unique family ID
+    Name: same as IndID
     Target: 1 = proband, 0 = other members of pedigree
-    Moth ID: unique ID of mother of individual
-    Fath ID: unique ID of father of individual
-    Gender: gender of individual
+    IndID: Unique individual ID
+    FathID: unique ID of father of individual
+    MothID: unique ID of mother of individual
+    Sex: gender of individual
     Twin: 1 = monozygotic twin, 0 = not monozygotic twin
     Dead: 1 = dead, 0 = alive
     Age: represents either current age or age at death
@@ -62,15 +63,16 @@ class Pedigree(object):
         '''
         Initializes the proband for the pedigree and returns a list in
         the format:
-        [FamID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [FamID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, 
         Mutn, Ashkn, ER, PR, HER2, CK14, CK56]
         '''
         fam_id = self.get_family_id()
         person_id = self.get_ind_id()
+        name = person_id
         target = 1
-        moth_id = None
-        fath_id = None
+        moth_id = 0
+        fath_id = 0
         gender = self.get_gender()
         twin = 0
         dead = 0
@@ -90,7 +92,7 @@ class Pedigree(object):
         CK14 = 0
         CK56 = 0
         proband = []
-        variables = [fam_id, person_id, target, moth_id, fath_id,
+        variables = [fam_id, name, target, person_id, fath_id, moth_id,
                     gender, twin, dead, age, birth_year, br_ca_dx1,
                     br_ca_dx2, ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
                     mutn, ashkn, ER, PR, HER2, CK14, CK56]
@@ -110,25 +112,27 @@ class Pedigree(object):
     def add_parents(self, person):
         '''
         Adds parent information for an individual
-        Returns a list of lists with information for child, mother,
+        Returns a list of lists with information for child's  mother and
         father in the following format:
-        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
         '''
-        person_moth_id = person[3]
+        person_moth_id = person[5]
         person_fath_id = person[4]
-        if person_moth_id == None and person_fath_id == None:
+        if person_moth_id == 0 and person_fath_id == 0:
             fam_id = person [0]
             person_moth_id = self.get_ind_id()
             person_fath_id = self.get_ind_id()
-            moth_id = None
-            fath_id = None
+            person_moth_name = person_moth_id
+            person_fath_name = person_fath_id
+            moth_id = 0
+            fath_id = 0
             target = 0
             moth_gender = "F"
             fath_gender = "M"
             twin = 0
-            child_age = int(person[8])
+            child_age = int(person[9])
             moth_age = random.randint(child_age + 20, child_age + 40)
             fath_age = random.randint(child_age + 20, child_age + 40)
             moth_birth_year = int(year) - int(moth_age)
@@ -156,13 +160,13 @@ class Pedigree(object):
             HER2 = 0
             CK14 = 0
             CK56 = 0
-            moth_variables = [fam_id, person_moth_id, target, moth_id,
-                              fath_id, moth_gender, twin, moth_dead, moth_age,
+            moth_variables = [fam_id, person_moth_name, target, person_moth_id, fath_id,
+                              moth_id, moth_gender, twin, moth_dead, moth_age,
                               moth_birth_year, br_ca_dx1, br_ca_dx2,
                               ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
                               mutn, ashkn, ER, PR, HER2, CK14, CK56]
-            fath_variables = [fam_id, person_fath_id, target, moth_id,
-                              fath_id, fath_gender, twin, fath_dead, fath_age,
+            fath_variables = [fam_id, person_fath_name, target, person_fath_id, fath_id,
+                              moth_id, fath_gender, twin, fath_dead, fath_age,
                               fath_birth_year, br_ca_dx1, br_ca_dx2,
                               ov_ca_dx, pro_ca_dx, pan_ca_dx, g_test,
                               mutn, ashkn, ER, PR, HER2, CK14, CK56]
@@ -172,11 +176,11 @@ class Pedigree(object):
             father = []
             for variable in fath_variables:
                 father.append(variable)
-            person[3] = person_moth_id
+            person[5] = person_moth_id
             person[4] = person_fath_id
             parents = []
-            parents.append(mother)
             parents.append(father)
+            parents.append(mother)
             return parents
         else:
             raise TypeError("This person already has parents")
@@ -189,8 +193,8 @@ class Pedigree(object):
 #    new_proband = new_ped.init_proband()
 #    new_parents = new_ped.add_parents(new_proband)
 #    print "Proband", new_proband
-#    print "Mother", new_parents[0]
-#    print "Father", new_parents[1]
+#    print "Mother", new_parents[1]
+#    print "Father", new_parents[0]
 #    x += 1
 
 ##to debug expection to add_parents
@@ -207,23 +211,24 @@ class Pedigree(object):
         offspring for pair
         Returns a list of information for the new partner in
         the following format:
-        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
         '''
         fam_id = person[0]
         partner_id = self.get_ind_id()
+        partner_name = partner_id
         partner_target = 0
-        partner_moth_id = None
-        partner_fath_id = None
-        person_gender = person[5]
+        partner_moth_id = 0
+        partner_fath_id = 0
+        person_gender = person[6]
         if person_gender == "M":
             partner_gender = "F"
         else:
             partner_gender = "M"
         partner_twin = 0
         partner_dead = 0
-        person_age = int(person[8])
+        person_age = int(person[9])
         partner_age = random.randint(person_age - 15, person_age + 15)
         if partner_age > 90:
             partner_age = 91
@@ -242,8 +247,8 @@ class Pedigree(object):
         HER2 = 0
         CK14 = 0
         CK56 = 0
-        partner = [fam_id, partner_id, partner_target,
-                   partner_moth_id, partner_fath_id,
+        partner = [fam_id, partner_name, partner_target, partner_id,
+                   partner_fath_id, partner_moth_id,
                    partner_gender, partner_twin,
                    partner_dead, partner_age, partner_birth_year,
                    br_ca_dx1, br_ca_dx2, ov_ca_dx,
@@ -273,23 +278,24 @@ class Pedigree(object):
 
         Returns a list of lists with each list representing one child in
         the following format:
-        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
         '''
         fam_id = person1[0]
-        if person1[5] == "F":
-            moth_id = person1[1]
-            fath_id = person2[1]
-            moth_age = int(person1[8])
+        if person1[6] == "F":
+            moth_id = person1[3]
+            fath_id = person2[3]
+            moth_age = int(person1[9])
         else:
-            moth_id = person2[1]
-            fath_id = person1[1]
-            moth_age = int(person2[8])
+            moth_id = person2[3]
+            fath_id = person1[3]
+            moth_age = int(person2[9])
         num_children = random.randint(0,4)
         children = []
         for child in range(num_children):
             child_id = self.get_ind_id()
+            child_name = child_id
             child_target = 0
             child_gender = self.get_gender()
             child_twin = 0
@@ -312,8 +318,8 @@ class Pedigree(object):
             HER2 = 0
             CK14 = 0
             CK56 = 0
-            child_variables = [fam_id, child_id, child_target, moth_id,
-                               fath_id, child_gender, child_twin, child_dead,
+            child_variables = [fam_id, child_name, child_target, child_id, fath_id,
+                               moth_id, child_gender, child_twin, child_dead,
                                child_age, child_birth_year, br_ca_dx1,
                                br_ca_dx2, ov_ca_dx, pro_ca_dx,
                                pan_ca_dx, g_test, mutn, ashkn, ER,
@@ -342,22 +348,22 @@ class Pedigree(object):
 
         Returns of list of lists containing the information for each
         siblings in the following format:
-        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
         '''
         fam_id = person[0]
-        moth_id = person[3]
+        moth_id = person[5]
         fath_id = person[4]
-        person_age = int(person[8])
-        if moth_id == None and fath_id == None:
+        person_age = int(person[9])
+        if moth_id == 0 and fath_id == 0:
             raise ValueError("Must add parents before adding siblings")
         else:
             num_sibs = random.randint(0,4)
             siblings = []
-
             for sib in range(num_sibs):
                 sib_id = self.get_ind_id()
+                sib_name = sib_id
                 sib_target = 0
                 sib_gender = self.get_gender()
                 sib_twin = 0
@@ -381,14 +387,15 @@ class Pedigree(object):
                 HER2 = 0
                 CK14 = 0
                 CK56 = 0
-                sib_variables = [fam_id, sib_id, sib_target, moth_id,
-                                 fath_id, sib_gender, sib_twin, sib_dead,
+                sib_variables = [fam_id, sib_name, sib_target, sib_id, fath_id,
+                                 moth_id, sib_gender, sib_twin, sib_dead,
                                  sib_age, sib_birth_year, br_ca_dx1,
                                  br_ca_dx2, ov_ca_dx, pro_ca_dx,
                                  pan_ca_dx, g_test, mutn, ashkn, ER,
                                  PR, HER2, CK14, CK56]
                 siblings.append(sib_variables)
             return siblings
+        
 #to debug add_siblings
 #x = 1
 #while x <= 5:
@@ -397,8 +404,8 @@ class Pedigree(object):
 #    new_parents = new_ped.add_parents(new_pro)
 #    new_sibs = new_ped.add_siblings(new_pro)
 #    print "Pedigree", x
-#    print "Mother", new_parents[0]
-#    print "Father", new_parents[1]
+#    print "Mother", new_parents[1]
+#    print "Father", new_parents[0]
 #    print "Proband", new_pro
 #    for sib in range(len(new_sibs)):
 #        print "Sibling", sib+1, new_sibs[sib]
@@ -411,7 +418,7 @@ class Pedigree(object):
 
         Returns a list of lists with information for each pedigree
         member in the following format:
-        [Fam ID, Ind ID, Target, Moth ID, Fath ID, Gender, Twin, Dead,
+        [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
         '''
@@ -422,14 +429,14 @@ class Pedigree(object):
         pedigree.append(pro_parents)
         pro_siblings = self.add_siblings(proband)
         pedigree.append(pro_siblings)
-        pro_moth_parents = self.add_parents(pro_parents[0])
-        pedigree.append(pro_moth_parents)
-        pro_fath_parents = self.add_parents(pro_parents[1])
+        pro_fath_parents = self.add_parents(pro_parents[0])
         pedigree.append(pro_fath_parents)
-        pro_moth_siblings = self.add_siblings(pro_parents[0])
-        pedigree.append(pro_moth_siblings)
-        pro_fath_siblings = self.add_siblings(pro_parents[1])
+        pro_moth_parents = self.add_parents(pro_parents[1])
+        pedigree.append(pro_moth_parents)
+        pro_fath_siblings = self.add_siblings(pro_parents[0])
         pedigree.append(pro_fath_siblings)
+        pro_moth_siblings = self.add_siblings(pro_parents[1])
+        pedigree.append(pro_moth_siblings)
         return pedigree
 
 #to debug make_pedigree
@@ -438,18 +445,18 @@ class Pedigree(object):
 #    new_ped = Pedigree()
 #    pedigree = new_ped.make_pedigree()
 #    proband = pedigree[0]
-#    mother = pedigree[1][0]
-#    father = pedigree[1][1]
+#    mother = pedigree[1][1]
+#    father = pedigree[1][0]
 #    pro_siblings = pedigree[2]
-#    pro_moth_parents = pedigree[3]
-#    pro_fath_parents = pedigree[4]
-#    pro_moth_sibs = pedigree[5]
-#    pro_fath_sibs = pedigree[6]
+#    pro_fath_parents = pedigree[3]
+#    pro_moth_parents = pedigree[4]
+#    pro_fath_sibs = pedigree[5]
+#    pro_moth_sibs = pedigree[6]
 #    print "Pedigree", x
-#    print "Maternal Grandmother", pro_moth_parents[0]
-#    print "Maternal Grandfather", pro_moth_parents[1]
-#    print "Paternal Grandmother", pro_fath_parents[0]
-#    print "Paternal Grandfather", pro_fath_parents[1]
+#    print "Paternal Grandfather", pro_fath_parents[0]
+#    print "Paternal Grandmother", pro_fath_parents[1]
+#    print "Maternal Grandfather", pro_moth_parents[0]
+#    print "Maternal Grandmother", pro_moth_parents[1]
 #    for sib in range(len(pro_moth_sibs)):
 #        print "Mother's Sibling", sib+1, pro_moth_sibs[sib]
 #    for sib in range(len(pro_fath_sibs)):
@@ -474,12 +481,12 @@ class Pedigree(object):
         new_f = "pedigree.txt"
         my_pedigree = open(new_f, "w")
         my_pedigree.write("BOADICEA import pedigree file format 2.0 \n")
-        headers = ["FamID", "Target", "IndID", "FathID", "MothID",
+        headers = ["FamID", "Name", "Target", "IndivID", "FathID", "MothID",
                    "Sex", "Twin", "Dead", "Age", "Yob", "1BrCa",
                    "2BrCa", "OvCa", "ProCa", "PanCa", "Gtest", "Mutn",
                    "Ashkn", "ER", "PR", "HER2", "CK14", "CK56"]
         for item in headers:
-            my_pedigree.write("%s \t" % item)
+            my_pedigree.write("%s\t" % item)
         my_pedigree.write("\n")
         for person in formatted_pedigree:
             for info in person:
@@ -487,7 +494,7 @@ class Pedigree(object):
             my_pedigree.write("\n")
         my_pedigree.close()
     
-##to debug write_pedigree
+#to debug write_pedigree
 #new_ped = Pedigree()
 #pedigree = new_ped.make_pedigree()
 #w_ped = new_ped.write_pedigree(pedigree)
