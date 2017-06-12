@@ -468,6 +468,251 @@ class Pedigree(object):
 #        print "Proband Sibling", sib+1, pro_siblings[sib]
 #    x += 1
 
+    def sample_ca_inc(self, inc, age):
+        '''
+        inc: dictionary of cancer incidences key = age, value =
+        incidence
+        age: age to sample incidence
+
+        Returns the probability of cancer incidence for a specific age
+        '''
+        if age < 40:
+            prob = inc[30]/100
+        elif age >=40 and age < 50:
+            prob = inc[40]/100
+        elif age >= 50 and age < 60:
+            prob = inc[50]/100
+        elif age >= 60 and age < 70:
+            prob = inc[60]/100
+        elif age >= 70:
+            prob = inc[70]/100
+        return prob
+
+##to debug sample_ca_inc
+#nc_br_ca_inc = {30:0.009, 40:0.040, 50:0.068, 60:0.092, 70:0.114}
+#new_fam = Pedigree()
+#x = 1
+#while x <= 5:
+#    age = random.randint(30, 90)
+#    new_prob = new_fam.sample_ca_inc(nc_br_ca_inc, age)
+#    print age, new_prob
+#    x += 1
+
+    def sample_mutn_inc(self, inc, age):
+        '''
+        inc: dictionary of mutation probabilites key = age, value =
+        probability
+        age: age to sample probability
+
+        Returns the probability of a mutations for a specific age
+        '''
+        if age < 40:
+            prob = inc[30]
+        elif age >= 40 and age < 50:
+            prob = inc[40]
+        elif age >= 50 and age < 60:
+            prob = inc[50]
+        elif age >= 60 and age < 70:
+            prob = inc[60]
+        elif age >= 70:
+            prob = inc[70]
+        return prob
+
+##to debug sample_mutn_inc
+#brca1_br_inc = {30:0.051, 40: 0.016, 50:0.004, 60:0.002,
+#                70:0.001}
+#new_fam = Pedigree()
+#x = 1
+#while x <= 10:
+#    age = random.randint(0,90)
+#    new_prob = new_fam.sample_mutn_inc(brca1_br_inc, age)
+#    print age, new_prob
+#    x += 1
+
+    def get_br_cancer(self, person):
+        '''
+        Randomly determines whether a person gets breast cancer using
+        probabilites from Table 1 in Antoniou et al 2004
+
+        Returns person information with age of 1st breast cancer
+        diagnosis and age of 2nd breast cancer diagnosis if person does
+        randomly gets breast cancer 
+        '''
+        nc_br_ca_inc = {30:0.009, 40:0.040, 50:0.068, 60:0.092,
+                        70:0.114}
+        brca1_br_ca_inc = {30:0.538, 40:1.021, 50:0.677, 60:0.450,
+                           70:0.481}
+        brca2_br_ca_inc = {30:0.375, 40:0.799, 50:1.484, 60:2.612,
+                           70:3.591}
+        st_age = person[9]
+        ca_age = 20
+        br_ca1_status = person[11]
+        br_ca2_status = person[12]
+        mutn_status = person[17]
+        if mutn_status == 0:
+            while ca_age <= st_age:
+                br_ca_prob = self.sample_ca_inc(nc_br_ca_inc, ca_age)
+                chance = random.random()
+                if chance < br_ca_prob:
+                    if br_ca1_status == 0:
+                        person[11] = ca_age
+                    else:
+                        if br_ca2_status == 0:
+                            if br_ca1_status > ca_age:
+                                person[12] = br_ca1_status
+                                person[11] = ca_age
+                            else:
+                                person[12] = ca_age
+                        else:
+                            raise ValueError("This person already has\
+                                             been diagnosed with\ 
+                                             breast cancer twice")
+                ca_age += 1
+        elif mutn_status == 1:
+            while ca_age <= st_age:
+                br_ca_prob = self.sample_ca_inc(brca1_br_ca_inc, ca_age)
+                chance = random.random()
+                if chance < br_ca_prob:
+                    if br_ca1_status == 0:
+                        person[11] = ca_age
+                    else:
+                        if br_ca2_status == 0:
+                            if br_ca1_status > ca_age:    
+                                person[12] = br_ca1_status
+                                person[11]= ca_age
+                            else:
+                                person[12] = ca_age
+                        else:
+                            raise ValueError("This person already has\
+                                             been diagnosed with\ 
+                                             breast cancer twice")
+                ca_age += 1
+        elif mutn_status == 2:
+            while ca_age <= st_age:
+                br_ca_prob = self.sample_ca_inc(brca2_br_ca_inc, ca_age)
+                chance = random.random()
+                if chance < br_ca_prob:
+                    if br_ca1_status == 0:
+                        person[11] = ca_age
+                    else:
+                        if br_ca2_status == 0:
+                            if br_ca1_status > ca_age:
+                                person[12] = br_ca1_status
+                                person[11] = ca_age
+                            else:
+                                person[12] = ca_age
+                        else:
+                            raise ValueError("This person already has\
+                                             been diagnosed with\ 
+                                             breast cancer twice")
+                ca_age += 1
+        elif mutn_status == 3:
+            while ca_age <= st_age:
+                br_ca_prob = self.sample_ca_inc(brca1_br_ca_inc, ca_age)
+                chance = random.random()
+                if chance < br_ca_prob:
+                    if br_ca1_status == 0:
+                        person[11] = ca_age
+                    else:
+                        if br_ca2_status == 0:
+                            if br_ca1_status > ca_age:
+                                person[12] = br_ca1_status
+                                person[11] = ca_age
+                            else:
+                                person[12] = ca_age
+                        else:
+                            raise ValueError("This person already has\
+                                             been diagnosed with\ 
+                                             breast cancer twice")
+                ca_age += 1
+        return person
+
+##to debug get_br_cancer
+#new_fam = Pedigree()
+#x = False
+#y = False
+#while x == False:
+#    while y == False:
+#        new_person = new_fam.init_proband()
+#        get_cancer = new_fam.get_br_cancer(new_person)
+#        has_ca1 = new_person[11]
+#        if has_ca1 > 0:
+#           y = True
+#           print get_cancer
+#    get_ca2 = new_fam.get_br_cancer(new_person)
+#    has_ca2 = new_person[12]
+#    if has_ca2 > 0:
+#        x = True
+#        print get_ca2
+
+    def get_ov_cancer(self, person):
+        nc_ov_ca_inc = {30:0.004, 40:0.012, 50:0.031, 60:0.044,
+                        70:0.048}
+        brca1_ov_ca_inc = {30:0.021, 40:1.173, 50:0.813, 60:0.976,
+                           70:0.100}
+        brca2_ov_ca_inc = {30:0.022, 40:0.044, 50:0.462, 60:0.416,
+                           70:0.100}
+        st_age = person[9]
+        ca_age = 20
+        ov_ca_status = person[13]
+        mutn_status = person[17]
+        if mutn_status == 0:
+            while ca_age <= st_age:
+                ov_ca_prob = self.sample_ca_inc(nc_ov_ca_inc,ca_age)
+                chance = random.random()
+                if chance < ov_ca_prob:
+                    if ov_ca_status == 0:
+                        person[13] = ca_age
+                    else:
+                        raise ValueError("This person has already been\
+                                         diagnosed with ovarian cancer")
+                ca_age += 1
+        elif mutn_status == 1:
+            while ca_age <= st_age:
+                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca-age)
+                chance = random.random()
+                if chance < ov_ca_prob:
+                    if ov_ca_status == 0:
+                        person[13] = ca_age
+                    else:
+                        raise ValueError("This person has already been\
+                                         diagnosed with ovarian cancer")
+                ca_age += 1
+        elif mutn_status == 2:
+            while ca_age <= st_age:
+                ov_ca_prob = self.sample_ca_inc(brca2_ov_ca_inc, ca-age)
+                chance = random.random()
+                if chance < ov_ca_prob:
+                    if ov_ca_status == 0:
+                        person[13] = ca_age
+                    else:
+                        raise ValueError("This person has already been\
+                                         diagnosed with ovarian cancer")
+                ca_age += 1
+        elif mutn_status == 3:
+            while ca_age <= st_age:
+                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca-age)
+                chance = random.random()
+                if chance < ov_ca_prob:
+                    if ov_ca_status == 0:
+                        person[13] = ca_age
+                    else:
+                        raise ValueError("This person has already been\
+                                         diagnosed with ovarian cancer")
+                ca_age += 1
+        return person
+
+##to debug get_ov_cancer
+#new_fam = Pedigree()
+#x = False
+#while x == False:
+#    new_person = new_fam.init_proband()
+#    ov_ca = new_fam.get_ov_cancer(new_person)
+#    has_ov_ca = ov_ca[13]
+#    if has_ov_ca > 0:
+#        x = True
+#        print ov_ca
+    
     def write_pedigree(self, pedigree):
         '''
         Writes pedigree in output specific for BOADICEA import to file pedigree.txt
@@ -486,7 +731,7 @@ class Pedigree(object):
                    "2BrCa", "OvCa", "ProCa", "PanCa", "Gtest", "Mutn",
                    "Ashkn", "ER", "PR", "HER2", "CK14", "CK56"]
         for item in headers:
-            my_pedigree.write("%s\t" % item)
+             my_pedigree.write("%s\t" % item)
         my_pedigree.write("\n")
         for person in formatted_pedigree:
             for info in person:
@@ -494,7 +739,7 @@ class Pedigree(object):
             my_pedigree.write("\n")
         my_pedigree.close()
     
-#to debug write_pedigree
+##to debug write_pedigree
 #new_ped = Pedigree()
 #pedigree = new_ped.make_pedigree()
 #w_ped = new_ped.write_pedigree(pedigree)
