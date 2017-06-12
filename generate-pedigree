@@ -411,7 +411,7 @@ class Pedigree(object):
 #        print "Sibling", sib+1, new_sibs[sib]
 #    x += 1
 
-    def make_pedigree(self):
+    def make_healthy_pedigree(self):
         '''
         Randomly generates a pedigree of 3 generations with proband in
         final generation
@@ -426,47 +426,59 @@ class Pedigree(object):
         proband = self.init_proband()
         pedigree.append(proband)
         pro_parents = self.add_parents(proband)
-        pedigree.append(pro_parents)
+        for person in pro_parents:
+            pedigree.append(person)
         pro_siblings = self.add_siblings(proband)
-        pedigree.append(pro_siblings)
+        for person in pro_siblings:
+            pedigree.append(person)
         pro_fath_parents = self.add_parents(pro_parents[0])
-        pedigree.append(pro_fath_parents)
+        for person in pro_fath_parents:
+            pedigree.append(person)
         pro_moth_parents = self.add_parents(pro_parents[1])
-        pedigree.append(pro_moth_parents)
+        for person in pro_moth_parents:
+            pedigree.append(person)
         pro_fath_siblings = self.add_siblings(pro_parents[0])
-        pedigree.append(pro_fath_siblings)
+        for person in pro_fath_siblings:
+            pedigree.append(person)
         pro_moth_siblings = self.add_siblings(pro_parents[1])
-        pedigree.append(pro_moth_siblings)
+        for person in pro_moth_siblings:
+            pedigree.append(person)
         return pedigree
 
-#to debug make_pedigree
+#to debug make_healthy_pedigree
 #x = 1
 #while x <= 5:
 #    new_ped = Pedigree()
-#    pedigree = new_ped.make_pedigree()
-#    proband = pedigree[0]
-#    mother = pedigree[1][1]
-#    father = pedigree[1][0]
-#    pro_siblings = pedigree[2]
-#    pro_fath_parents = pedigree[3]
-#    pro_moth_parents = pedigree[4]
-#    pro_fath_sibs = pedigree[5]
-#    pro_moth_sibs = pedigree[6]
-#    print "Pedigree", x
-#    print "Paternal Grandfather", pro_fath_parents[0]
-#    print "Paternal Grandmother", pro_fath_parents[1]
-#    print "Maternal Grandfather", pro_moth_parents[0]
-#    print "Maternal Grandmother", pro_moth_parents[1]
-#    for sib in range(len(pro_moth_sibs)):
-#        print "Mother's Sibling", sib+1, pro_moth_sibs[sib]
-#    for sib in range(len(pro_fath_sibs)):
-#        print "Father's Sibling", sib+1, pro_fath_sibs[sib]
-#    print "Mother", mother
-#    print "Father", father
-#    print "Proband", proband
-#    for sib in range(len(pro_siblings)):
-#        print "Proband Sibling", sib+1, pro_siblings[sib]
+#    pedigree = new_ped.make_healthy_pedigree()
+#    print pedigree
 #    x += 1
+
+    def write_pedigree(self, pedigree):
+        '''
+        Writes pedigree in output specific for BOADICEA import to file pedigree.txt
+        '''
+        new_f = "pedigree.txt"
+        my_pedigree = open(new_f, "w")
+        my_pedigree.write("BOADICEA import pedigree file format 2.0 \n")
+        headers = ["FamID", "Name", "Target", "IndivID", "FathID", "MothID",
+                   "Sex", "Twin", "Dead", "Age", "Yob", "1BrCa",
+                   "2BrCa", "OvCa", "ProCa", "PanCa", "Gtest", "Mutn",
+                   "Ashkn", "ER", "PR", "HER2", "CK14", "CK56"]
+        for item in headers:
+             my_pedigree.write("%s\t" % item)
+        my_pedigree.write("\n")
+        for person in pedigree:
+            for info in person:
+                my_pedigree.write("%s \t" % info)
+            my_pedigree.write("\n")
+        my_pedigree.close()
+    
+##to debug write_pedigree
+#new_ped = Pedigree()
+#pedigree = new_ped.make_healthy_pedigree()
+#w_ped = new_ped.write_pedigree(pedigree)
+
+class CancerPedigree(Pedigree):
 
     def sample_ca_inc(self, inc, age):
         '''
@@ -490,7 +502,7 @@ class Pedigree(object):
 
 ##to debug sample_ca_inc
 #nc_br_ca_inc = {30:0.009, 40:0.040, 50:0.068, 60:0.092, 70:0.114}
-#new_fam = Pedigree()
+#new_fam = CancerPedigree()
 #x = 1
 #while x <= 5:
 #    age = random.randint(30, 90)
@@ -521,7 +533,7 @@ class Pedigree(object):
 ##to debug sample_mutn_inc
 #brca1_br_inc = {30:0.051, 40: 0.016, 50:0.004, 60:0.002,
 #                70:0.001}
-#new_fam = Pedigree()
+#new_fam = CancerPedigree()
 #x = 1
 #while x <= 10:
 #    age = random.randint(0,90)
@@ -544,6 +556,7 @@ class Pedigree(object):
                            70:0.481}
         brca2_br_ca_inc = {30:0.375, 40:0.799, 50:1.484, 60:2.612,
                            70:3.591}
+        sex = person[6]
         st_age = person[9]
         ca_age = 20
         br_ca1_status = person[11]
@@ -625,10 +638,13 @@ class Pedigree(object):
                                              been diagnosed with\ 
                                              breast cancer twice")
                 ca_age += 1
+        if sex == "M":
+            person[11] = 0
+            person[12] = 0
         return person
 
-##to debug get_br_cancer
-#new_fam = Pedigree()
+#to debug get_br_cancer
+#new_fam = CancerPedigree()
 #x = False
 #y = False
 #while x == False:
@@ -646,12 +662,20 @@ class Pedigree(object):
 #        print get_ca2
 
     def get_ov_cancer(self, person):
+        '''
+        Randomly determines whether a person gets ovarian cancer using
+        probabilities from Antoniou et al 2004
+
+        Returns person information with age of ovarian cancer included
+        if person gets ovarian cancer
+        '''
         nc_ov_ca_inc = {30:0.004, 40:0.012, 50:0.031, 60:0.044,
                         70:0.048}
         brca1_ov_ca_inc = {30:0.021, 40:1.173, 50:0.813, 60:0.976,
                            70:0.100}
         brca2_ov_ca_inc = {30:0.022, 40:0.044, 50:0.462, 60:0.416,
                            70:0.100}
+        sex = person[6]
         st_age = person[9]
         ca_age = 20
         ov_ca_status = person[13]
@@ -700,10 +724,12 @@ class Pedigree(object):
                         raise ValueError("This person has already been\
                                          diagnosed with ovarian cancer")
                 ca_age += 1
+        if sex == "M":
+            person[13] = 0
         return person
 
 ##to debug get_ov_cancer
-#new_fam = Pedigree()
+#new_fam = CancerPedigree()
 #x = False
 #while x == False:
 #    new_person = new_fam.init_proband()
@@ -712,35 +738,30 @@ class Pedigree(object):
 #    if has_ov_ca > 0:
 #        x = True
 #        print ov_ca
-    
-    def write_pedigree(self, pedigree):
+
+    def get_ca_pedigree(self, pedigree):
         '''
-        Writes pedigree in output specific for BOADICEA import to file pedigree.txt
         '''
-        formatted_pedigree = []
-        proband = pedigree.pop(0)
-        formatted_pedigree.append(proband)
-        for lst in pedigree:
-            for person in lst:
-                formatted_pedigree.append(person)
-        new_f = "pedigree.txt"
-        my_pedigree = open(new_f, "w")
-        my_pedigree.write("BOADICEA import pedigree file format 2.0 \n")
-        headers = ["FamID", "Name", "Target", "IndivID", "FathID", "MothID",
-                   "Sex", "Twin", "Dead", "Age", "Yob", "1BrCa",
-                   "2BrCa", "OvCa", "ProCa", "PanCa", "Gtest", "Mutn",
-                   "Ashkn", "ER", "PR", "HER2", "CK14", "CK56"]
-        for item in headers:
-             my_pedigree.write("%s\t" % item)
-        my_pedigree.write("\n")
-        for person in formatted_pedigree:
-            for info in person:
-                my_pedigree.write("%s \t" % info)
-            my_pedigree.write("\n")
-        my_pedigree.close()
+        cancer_pedigree = []
+        for person in pedigree:
+            sex = person[6]
+            if sex == "F":
+                br_ca = self.get_br_cancer(person)
+                ov_ca = self.get_ov_cancer(br_ca)
+                cancer_pedigree.append(ov_ca)
+            else:
+                cancer_pedigree.append(person)
+        return cancer_pedigree
     
-##to debug write_pedigree
-#new_ped = Pedigree()
-#pedigree = new_ped.make_pedigree()
-#w_ped = new_ped.write_pedigree(pedigree)
+#to debug get_ca_pedigree
+new_ped = CancerPedigree()
+h_pedigree = new_ped.make_healthy_pedigree()
+x = False
+while x == False:
+    ca_pedigree = new_ped.get_ca_pedigree(h_pedigree)
+    for person in ca_pedigree:
+        if person[11] > 0 or person[13] > 0:
+            x = True
+            w_ca_ped = new_ped.write_pedigree(ca_pedigree)
+
 
