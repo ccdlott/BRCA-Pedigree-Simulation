@@ -424,25 +424,27 @@ class Pedigree(object):
         '''
         pedigree = []
         proband = self.init_proband()
-        pedigree.append(proband)
         pro_parents = self.add_parents(proband)
-        for person in pro_parents:
-            pedigree.append(person)
+        pro_fath = pro_parents[0]
+        pro_moth = pro_parents[1]
         pro_siblings = self.add_siblings(proband)
-        for person in pro_siblings:
-            pedigree.append(person)
-        pro_fath_parents = self.add_parents(pro_parents[0])
+        pro_fath_parents = self.add_parents(pro_fath)
+        pro_moth_parents = self.add_parents(pro_moth)
+        pro_fath_siblings = self.add_siblings(pro_fath)
+        pro_moth_siblings = self.add_siblings(pro_moth)
         for person in pro_fath_parents:
             pedigree.append(person)
-        pro_moth_parents = self.add_parents(pro_parents[1])
         for person in pro_moth_parents:
             pedigree.append(person)
-        pro_fath_siblings = self.add_siblings(pro_parents[0])
+        pedigree.append(pro_fath)
+        pedigree.append(pro_moth)
         for person in pro_fath_siblings:
             pedigree.append(person)
-        pro_moth_siblings = self.add_siblings(pro_parents[1])
         for person in pro_moth_siblings:
             pedigree.append(person)
+        for person in pro_siblings:
+            pedigree.append(person)
+        pedigree.append(proband)
         return pedigree
 
 #to debug make_healthy_pedigree
@@ -453,9 +455,10 @@ class Pedigree(object):
 #    print pedigree
 #    x += 1
 
-    def write_pedigree(self, pedigree):
+    def write_pedigree(self, pedigrees):
         '''
-        Writes pedigree in output specific for BOADICEA import to file pedigree.txt
+        Writes a list of pedigrees in output specific for BOADICEA 
+        import to file pedigree.txt
         '''
         new_f = "pedigree.txt"
         my_pedigree = open(new_f, "w")
@@ -467,16 +470,22 @@ class Pedigree(object):
         for item in headers:
              my_pedigree.write("%s\t" % item)
         my_pedigree.write("\n")
-        for person in pedigree:
-            for info in person:
-                my_pedigree.write("%s \t" % info)
-            my_pedigree.write("\n")
+        for pedigree in pedigrees:
+            for person in pedigree:
+                for info in person:
+                    my_pedigree.write("%s\t" % info)
+                my_pedigree.write("\n")
         my_pedigree.close()
     
 ##to debug write_pedigree
-#new_ped = Pedigree()
-#pedigree = new_ped.make_healthy_pedigree()
-#w_ped = new_ped.write_pedigree(pedigree)
+#x = 1
+#pedigrees = []
+#while x <= 5:
+#    new_ped = Pedigree()
+#    pedigree = new_ped.make_healthy_pedigree()
+#    pedigrees.append(pedigree)
+#    x += 1
+#w_ped = new_ped.write_pedigree(pedigrees)
 
 class CancerPedigree(Pedigree):
 
@@ -558,7 +567,7 @@ class CancerPedigree(Pedigree):
                            70:3.591}
         sex = person[6]
         st_age = person[9]
-        ca_age = 20
+        ca_age = 30
         br_ca1_status = person[11]
         br_ca2_status = person[12]
         mutn_status = person[17]
@@ -677,7 +686,7 @@ class CancerPedigree(Pedigree):
                            70:0.100}
         sex = person[6]
         st_age = person[9]
-        ca_age = 20
+        ca_age = 30
         ov_ca_status = person[13]
         mutn_status = person[17]
         if mutn_status == 0:
@@ -739,8 +748,14 @@ class CancerPedigree(Pedigree):
 #        x = True
 #        print ov_ca
 
-    def get_ca_pedigree(self, pedigree):
+    def make_ca_pedigree(self, pedigree):
         '''
+        Returns a pedigree where family members randomly have
+        cancer given a healhty pedigree
+        
+        Returns a list of lists with each list containing information
+        for an individual in the format used in the
+        make_healthy_pedigree function
         '''
         cancer_pedigree = []
         for person in pedigree:
@@ -753,15 +768,232 @@ class CancerPedigree(Pedigree):
                 cancer_pedigree.append(person)
         return cancer_pedigree
     
-#to debug get_ca_pedigree
-new_ped = CancerPedigree()
-h_pedigree = new_ped.make_healthy_pedigree()
-x = False
-while x == False:
-    ca_pedigree = new_ped.get_ca_pedigree(h_pedigree)
-    for person in ca_pedigree:
-        if person[11] > 0 or person[13] > 0:
-            x = True
-            w_ca_ped = new_ped.write_pedigree(ca_pedigree)
+##to debug make_ca_pedigree
+#new_ped = CancerPedigree()
+#h_pedigree = new_ped.make_healthy_pedigree()
+#x = False
+#while x == False:
+#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
+#    for person in ca_pedigree:
+#        if person[11] > 0 or person[13] > 0:
+#            x = True
+#            w_ca_ped = new_ped.write_pedigree([ca_pedigree])
+
+    def get_mutn_br(self, person):
+        '''
+        Determines whether an individual with breast cancer has a BRCA1
+        or BRCA2 mutation using probailities from Antoniou et al 2004
+        Table 2
+
+        Returns a list of information for a given person including their
+        updated mutation status
+        '''
+        br_brca1_prob = {30:0.051, 40:0.016, 50:0.004, 60:0.002,
+                         70:0.001}
+        br_brca2_prob = {30:0.050, 40:0.020, 50:0.015, 60:0.012,
+                         70:0.008}
+        ca_age = person[11]
+        br_ca_status = person[11]
+        mutn_status = person[17]
+        brca1 = False
+        brca2 = False
+        if br_ca_status > 0:
+            if mutn_status == 0:
+                brca1_prob = self.sample_mutn_inc(br_brca1_prob, ca_age)
+                chance1 = random.random()
+                if chance1 < brca1_prob:
+                    brca1 = True
+                brca2_prob = self.sample_mutn_inc(br_brca2_prob, ca_age)
+                chance2 = random.random()
+                if chance2 < brca2_prob:
+                    brca2 = True
+                if brca1 == True and brca2 == True:
+                    person[17] = 3
+                elif brca1 == True and brca2 == False:
+                    person[17] = 1
+                elif brca1 == False and brca2 == True:
+                    person[17] = 2
+                else:
+                    person[17] = 0
+            elif mutn_status == 1:
+                brca2_prob = self.sample_mutn_inc(br_brca2_prob, ca_age)
+                chance = random.random()
+                if chance < brca2_prob:
+                    person[17] = 3
+            elif mutn_status == 2:
+                brca1_prob = self.sample_mutn_inc(br_brca1_prob, ca_age)
+                chance = random.random()
+                if chance < brca1_prob:
+                    person[17] = 3
+            else:
+                person[17] = 3
+        return person
+
+##to debug get_mutn_br
+#new_ped = CancerPedigree()
+#x = False
+#while x == False:
+#    new_person = new_ped.init_proband()
+#    new_ca = new_ped.get_br_cancer(new_person)
+#    new_mutn = new_ped.get_mutn_br(new_ca)
+#    mutn_status = new_mutn[17]
+#    if mutn_status > 0:
+#        x = True
+#        print new_mutn
+                    
+    def get_mutn_ov(self, person):
+        '''
+        Determines whether an individual with ovarian cancer has a BRCA1
+        or BRCA2 mutation using the probabilites in Table 2 from
+        Antoniou et al 2004
+
+        Returns a list of information for the person including the
+        updated mutations status
+        '''
+        ov_brca1_prob = {30:0.006, 40:0.082, 50:0.018, 60:0.013,
+                         70:0.001}
+        ov_brca2_prob = {30:0.008, 40:0.004, 50:0.016, 60:0.008,
+                         70:0.001}
+        ca_age = person[13]
+        ov_ca_status = person[13]
+        mutn_status = person[17]
+        brca1 = False
+        brca2 = False
+        if ov_ca_status > 0:
+            if mutn_status == 0:
+                brca1_prob = self.sample_mutn_inc(ov_brca1_prob, ca_age)
+                chance1 = random.random()
+                if chance1 < brca1_prob:
+                    brca1 = True
+                brca2_prob = self.sample_mutn_inc(ov_brca2_prob, ca_age)
+                chance2 = random.random()
+                if chance2 < brca2_prob:
+                    brca2 = True
+                if brca1 == True and brca2 == True:
+                    person[17] = 3
+                elif brca1 == True and brca2 == False:
+                    person[17] = 1
+                elif brca1 == False and brca2 == True:
+                    person[17] = 2
+                else:
+                    person[17] = 0
+            elif mutn_status == 1:
+                brca2_prob = self.sample_mutn_inc(ov_brca2_prob, ca_age)
+                chance = random.random()
+                if chance < brca2_prob:
+                    person[17] = 3
+            elif mutn_status == 2:
+                brca1_prob = self.sample_mutn_inc(ov_brca1_prob, ca_age)
+                chance = random.random()
+                if chance < brca1_prob:
+                    person[17] = 3
+            else:
+                person[17] = 3
+        return person
+
+##to debug get_mutn_ov
+#new_ped = CancerPedigree()
+#x = False
+#while x == False:
+#    new_person = new_ped.init_proband()
+#    new_ca = new_ped.get_ov_cancer(new_person)
+#    new_mutn = new_ped.get_mutn_ov(new_ca)
+#    mutn_status = new_mutn[17]
+#    if mutn_status > 0:
+#        x = True
+#        print new_mutn
+        
+    def make_mutn_pedigree(self, ca_pedigree):
+        '''
+        Given a pedigree with cancer randomly determines which if any
+        individuals with cancer have a mutation.
+
+        Returns a list of lists detailing the information of every
+        individual in the pedigree
+        '''
+        mutn_pedigree = []
+        for person in ca_pedigree:
+            sex = person[6]
+            if sex == "F":
+                br_mutn = self.get_mutn_br(person)
+                ov_mutn = self.get_mutn_ov(br_mutn)
+                mutn_pedigree.append(ov_mutn)
+            else:
+                mutn_pedigree.append(person)
+        return mutn_pedigree
+
+##to debug get_mutn_pedigree
+#new_ped = CancerPedigree()
+#x = False
+#while x == False:
+#    h_pedigree = new_ped.make_healthy_pedigree()
+#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
+#    mutn_pedigree = new_ped.make_mutn_pedigree(ca_pedigree)
+#    for person in mutn_pedigree:
+#        if person[17] > 0:
+#            x = True
+#            w_mutn_ped = new_ped.write_pedigree([mutn_pedigree])
 
 
+    def pass_founder_mutn(self, founder, mutn_pedigree):
+        '''
+        Given arguements of a specific founder with a mutation and a
+        pedigree with a mutation returns a list of individuals with the
+        founder mutation having a 50% chance of passing to the next
+        generation
+        '''
+        founder_id = founder[3]
+        founder_mutn = founder[17]
+        for person in mutn_pedigree:
+            moth_id = person[5]
+            fath_id = person[4]
+            if founder_id == moth_id or founder_id == fath_id:
+                prob_pass = 0.5
+                chance = random.random()
+                if chance < prob_pass:
+                    person[17] = founder_mutn
+        return mutn_pedigree
+
+##to debug pass_founder_mutn
+#new_ped = CancerPedigree()
+#x = False
+#while x == False:
+#    h_pedigree = new_ped.make_healthy_pedigree()
+#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
+#    mutn_pedigree = new_ped.make_mutn_pedigree(ca_pedigree)
+#    for person in mutn_pedigree:
+#        if person[17] > 0:
+#            founder = person
+#            pass_mutn = new_ped.pass_founder_mutn(founder,
+#                                                  mutn_pedigree)
+#            length = len(pass_mutn)
+#            if pass_mutn[1][17] > 0:
+#                if pass_mutn[length-1][17] > 0:
+#                    x = True
+#                    w_mutn_ped = new_ped.write_pedigree([pass_mutn])
+            
+#simulation
+def run_simulation(num_trials):
+    pedigrees = []
+    x = 1
+    while x <= num_trials:
+        new_ped = CancerPedigree()
+        h_ped = new_ped.make_healthy_pedigree()
+        ca_ped = new_ped.make_ca_pedigree(h_ped)
+        mutn_ped = new_ped.make_mutn_pedigree(ca_ped)
+        founders = []
+        for person in mutn_ped:
+            if person[17] > 0:
+                founder = person
+                founders.append(person)
+        if len(founders) > 0:
+            for person in founders:
+                pass_mutn = new_ped.pass_founder_mutn(person, mutn_ped)
+                pedigrees.append(pass_mutn)
+        else:
+            pedigrees.append(mutn_ped)        
+        x += 1
+    new_sim = Pedigree()
+    w_ped = new_sim.write_pedigree(pedigrees)
+
+run_simulation(500)            
