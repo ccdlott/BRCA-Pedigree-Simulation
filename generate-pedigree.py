@@ -1053,6 +1053,13 @@ def run_simulation(num_trials):
 #run_simulation(500)            
 
 def run_ca_sims(num_trials):
+    '''
+    Does the same thing as the function run simulation but only
+    returns pedigrees where at least one family member has a mutation
+    
+    Runs very slowly due to small probability of developing mutation
+    if an individual develops cancer
+    '''
     pedigrees = []
     x = 1
     while x <= num_trials:
