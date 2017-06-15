@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import random
 from datetime import datetime
 now = datetime.now()
@@ -586,10 +587,6 @@ class CancerPedigree(Pedigree):
                                 person[11] = ca_age
                             else:
                                 person[12] = ca_age
-                        else:
-                            raise ValueError("This person already has\
-                                             been diagnosed with\ 
-                                             breast cancer twice")
                 ca_age += 1
         elif mutn_status == 1:
             while ca_age <= st_age:
@@ -605,10 +602,6 @@ class CancerPedigree(Pedigree):
                                 person[11]= ca_age
                             else:
                                 person[12] = ca_age
-                        else:
-                            raise ValueError("This person already has\
-                                             been diagnosed with\ 
-                                             breast cancer twice")
                 ca_age += 1
         elif mutn_status == 2:
             while ca_age <= st_age:
@@ -624,10 +617,6 @@ class CancerPedigree(Pedigree):
                                 person[11] = ca_age
                             else:
                                 person[12] = ca_age
-                        else:
-                            raise ValueError("This person already has\
-                                             been diagnosed with\ 
-                                             breast cancer twice")
                 ca_age += 1
         elif mutn_status == 3:
             while ca_age <= st_age:
@@ -643,10 +632,6 @@ class CancerPedigree(Pedigree):
                                 person[11] = ca_age
                             else:
                                 person[12] = ca_age
-                        else:
-                            raise ValueError("This person already has\
-                                             been diagnosed with\ 
-                                             breast cancer twice")
                 ca_age += 1
         if sex == "M":
             person[11] = 0
@@ -697,9 +682,6 @@ class CancerPedigree(Pedigree):
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
                         person[13] = ca_age
-                    else:
-                        raise ValueError("This person has already been\
-                                         diagnosed with ovarian cancer")
                 ca_age += 1
         elif mutn_status == 1:
             while ca_age <= st_age:
@@ -708,9 +690,6 @@ class CancerPedigree(Pedigree):
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
                         person[13] = ca_age
-                    else:
-                        raise ValueError("This person has already been\
-                                         diagnosed with ovarian cancer")
                 ca_age += 1
         elif mutn_status == 2:
             while ca_age <= st_age:
@@ -719,9 +698,6 @@ class CancerPedigree(Pedigree):
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
                         person[13] = ca_age
-                    else:
-                        raise ValueError("This person has already been\
-                                         diagnosed with ovarian cancer")
                 ca_age += 1
         elif mutn_status == 3:
             while ca_age <= st_age:
@@ -730,9 +706,6 @@ class CancerPedigree(Pedigree):
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
                         person[13] = ca_age
-                    else:
-                        raise ValueError("This person has already been\
-                                         diagnosed with ovarian cancer")
                 ca_age += 1
         if sex == "M":
             person[13] = 0
