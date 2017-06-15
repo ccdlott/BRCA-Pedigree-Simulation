@@ -447,12 +447,13 @@ class Pedigree(object):
         pedigree.append(proband)
         return pedigree
 
-#to debug make_healthy_pedigree
+##to debug make_healthy_pedigree
 #x = 1
 #while x <= 5:
 #    new_ped = Pedigree()
 #    pedigree = new_ped.make_healthy_pedigree()
-#    print pedigree
+#    for person in pedigree:
+#        print person
 #    x += 1
 
     def write_pedigree(self, pedigrees):
@@ -702,7 +703,7 @@ class CancerPedigree(Pedigree):
                 ca_age += 1
         elif mutn_status == 1:
             while ca_age <= st_age:
-                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca-age)
+                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca_age)
                 chance = random.random()
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
@@ -713,7 +714,7 @@ class CancerPedigree(Pedigree):
                 ca_age += 1
         elif mutn_status == 2:
             while ca_age <= st_age:
-                ov_ca_prob = self.sample_ca_inc(brca2_ov_ca_inc, ca-age)
+                ov_ca_prob = self.sample_ca_inc(brca2_ov_ca_inc, ca_age)
                 chance = random.random()
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
@@ -724,7 +725,7 @@ class CancerPedigree(Pedigree):
                 ca_age += 1
         elif mutn_status == 3:
             while ca_age <= st_age:
-                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca-age)
+                ov_ca_prob = self.sample_ca_inc(brca1_ov_ca_inc, ca_age)
                 chance = random.random()
                 if chance < ov_ca_prob:
                     if ov_ca_status == 0:
@@ -748,37 +749,37 @@ class CancerPedigree(Pedigree):
 #        x = True
 #        print ov_ca
 
-    def make_ca_pedigree(self, pedigree):
+    def get_founder_ca(self, pedigree):
         '''
-        Returns a pedigree where family members randomly have
-        cancer given a healhty pedigree
-        
-        Returns a list of lists with each list containing information
-        for an individual in the format used in the
-        make_healthy_pedigree function
-        '''
-        cancer_pedigree = []
-        for person in pedigree:
-            sex = person[6]
-            if sex == "F":
-                br_ca = self.get_br_cancer(person)
-                ov_ca = self.get_ov_cancer(br_ca)
-                cancer_pedigree.append(ov_ca)
-            else:
-                cancer_pedigree.append(person)
-        return cancer_pedigree
-    
-##to debug make_ca_pedigree
-#new_ped = CancerPedigree()
-#h_pedigree = new_ped.make_healthy_pedigree()
-#x = False
-#while x == False:
-#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
-#    for person in ca_pedigree:
-#        if person[11] > 0 or person[13] > 0:
-#            x = True
-#            w_ca_ped = new_ped.write_pedigree([ca_pedigree])
+        Given a pedigree selects pedigree founders and randomly gives
+        breast and ovarian cancer given probabilites used in functions
+        get_br_cancer and get_ov_cancer
 
+        Returns a list of lists for all individuals in the original
+        pedigree with updated information for the four founder individuals
+        '''
+        founders = pedigree[:4]
+        founders_ca = []
+        for founder in founders:
+            br_ca = self.get_br_cancer(founder)
+            ov_ca = self.get_ov_cancer(br_ca)
+            founders_ca.append(ov_ca)
+        for index in range(4):
+            pedigree[index] = founders_ca[index]
+        return pedigree
+    
+##to debug get_founder_ca
+# x = CancerPedigree()
+# y = False
+# while y == False:
+#     h_ped = x.make_healthy_pedigree()
+#     founders = x.get_founder_ca(h_ped)
+#     for person in founders:
+#         if person[11] > 0 or person[13] > 0:
+#             y = True
+#             w_ped = x.write_pedigree([founders])
+
+        
     def get_mutn_br(self, person):
         '''
         Determines whether an individual with breast cancer has a BRCA1
@@ -914,38 +915,43 @@ class CancerPedigree(Pedigree):
 #    if mutn_status > 0:
 #        x = True
 #        print new_mutn
-        
-    def make_mutn_pedigree(self, ca_pedigree):
-        '''
-        Given a pedigree with cancer randomly determines which if any
-        individuals with cancer have a mutation.
 
-        Returns a list of lists detailing the information of every
-        individual in the pedigree
+    def get_founder_mutns(self, ca_pedigree):
         '''
-        mutn_pedigree = []
-        for person in ca_pedigree:
-            sex = person[6]
+        Given a pedigree where the founders have cancer, randomly
+        assigns mutations with the probabilites from the functions
+        get_munt_br and get_mutn_ov for only the female founders in a
+        pedigree
+
+        Returns a list of lists of the information for each individual
+        in the pedigree with updated mutation information for the two
+        female founder individuals
+        '''
+        founders = ca_pedigree[:4]
+        founder_mutns = []
+        for founder in founders:
+            sex = founder[6]
             if sex == "F":
-                br_mutn = self.get_mutn_br(person)
+                br_mutn = self.get_mutn_br(founder)
                 ov_mutn = self.get_mutn_ov(br_mutn)
-                mutn_pedigree.append(ov_mutn)
+                founder_mutns.append(ov_mutn)
             else:
-                mutn_pedigree.append(person)
-        return mutn_pedigree
+                founder_mutns.append(founder)
+        for index in range(4):
+            ca_pedigree[index] = founder_mutns[index]
+        return ca_pedigree
 
-##to debug get_mutn_pedigree
-#new_ped = CancerPedigree()
-#x = False
-#while x == False:
-#    h_pedigree = new_ped.make_healthy_pedigree()
-#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
-#    mutn_pedigree = new_ped.make_mutn_pedigree(ca_pedigree)
-#    for person in mutn_pedigree:
-#        if person[17] > 0:
-#            x = True
-#            w_mutn_ped = new_ped.write_pedigree([mutn_pedigree])
-
+##to debug get_founder_mutns
+#x = CancerPedigree()
+#y = False
+#while y == False:
+#    h_ped = x.make_healthy_pedigree()
+#    ca_founders = x.get_founder_ca(h_ped)
+#    mutn_founders = x.get_founder_mutns(ca_founders)
+#    for person in mutn_founders:
+#        if person [17] > 0:
+#            y = True
+#            w_ped = x.write_pedigree([mutn_founders])
 
     def pass_founder_mutn(self, founder, mutn_pedigree):
         '''
@@ -968,43 +974,106 @@ class CancerPedigree(Pedigree):
         return mutn_pedigree
 
 ##to debug pass_founder_mutn
-#new_ped = CancerPedigree()
-#x = False
-#while x == False:
-#    h_pedigree = new_ped.make_healthy_pedigree()
-#    ca_pedigree = new_ped.make_ca_pedigree(h_pedigree)
-#    mutn_pedigree = new_ped.make_mutn_pedigree(ca_pedigree)
-#    for person in mutn_pedigree:
-#        if person[17] > 0:
-#            founder = person
-#            pass_mutn = new_ped.pass_founder_mutn(founder,
-#                                                  mutn_pedigree)
-#            length = len(pass_mutn)
-#            if pass_mutn[1][17] > 0:
-#                if pass_mutn[length-1][17] > 0:
-#                    x = True
-#                    w_mutn_ped = new_ped.write_pedigree([pass_mutn])
-            
+# new_ped = CancerPedigree()
+# x = False
+# while x == False:
+#     h_pedigree = new_ped.make_healthy_pedigree()
+#     ca_pedigree = new_ped.get_founder_ca(h_pedigree)
+#     mutn_pedigree = new_ped.get_founder_mutns(ca_pedigree)
+#     for person in mutn_pedigree:
+#         if person[17] > 0:
+#             founder = person
+#             pass_mutn = new_ped.pass_founder_mutn(founder,
+#                                                   mutn_pedigree)
+#             length = len(pass_mutn)
+#             if pass_mutn[1][17] > 0:
+#                 if pass_mutn[length-1][17] > 0:
+#                     x = True
+#                     w_mutn_ped = new_ped.write_pedigree([pass_mutn])
+
+    def make_ca_pedigree(self, mutn_pedigree):
+        '''
+        Returns a pedigree where family members randomly have
+        cancer given a pedigree where founders have been randomly
+        assigned cancer and mutations
+        
+        Returns a list of lists with each list containing information
+        for an individual in the format used in the
+        make_healthy_pedigree function
+        '''
+        cancer_pedigree = []
+        founders = mutn_pedigree[:4]
+        for founder in founders:
+            cancer_pedigree.append(founder)
+        wo_founders = mutn_pedigree[4:]
+        for person in wo_founders:
+            sex = person[6]
+            if sex == "F":
+                br_ca = self.get_br_cancer(person)
+                ov_ca = self.get_ov_cancer(br_ca)
+                cancer_pedigree.append(ov_ca)
+            else:
+                cancer_pedigree.append(person)
+        return cancer_pedigree
+    
+##to debug make_ca_pedigree
+# x = False
+# while x == False:
+#     new_ped = CancerPedigree()
+#     h_ped= new_ped.make_healthy_pedigree()
+#     founder_ca = new_ped.get_founder_ca(h_ped)
+#     founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#     for person in founder_mutns:
+#         if person[17] > 0:
+#             founder = person
+#             pass_mutn = new_ped.pass_founder_mutn(founder,
+#                                                   founder_mutns)
+#     ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#     wo_founders = ca_ped[4:]
+#     for person in wo_founders:
+#         if person[11] > 0 or person[13] > 0:
+#             x = True
+#             w_ca_ped = new_ped.write_pedigree([ca_ped])
+
 #simulation
 def run_simulation(num_trials):
+    '''
+    Runs pedigree simulation for number of trials specified
+
+    Produces file "pedigree.txt" that contains number of specified
+    pedigrees
+
+    For each family in pedigrees goes through the following steps:
+    1) Makes a healthy pedigree with designated proband, proband's
+    parents, proband's grandparents, proband's aunts/uncles
+    2) Randomly assigns pedigree founders (proband's grandparents)
+    cancer using probabilties from Antoniou et al 2004 Table 1
+    3) Randomly assigns pedigree founder mutations based on their cancer
+    status using probabilities from Antonious et al 2004 Table 2
+    4) Passes founder mutations from founder to each offspring with 50%
+    chance of passing mutation
+    5) Randomly assigns cancer to remaining individuals in pedigree
+    '''
     pedigrees = []
     x = 1
     while x <= num_trials:
         new_ped = CancerPedigree()
         h_ped = new_ped.make_healthy_pedigree()
-        ca_ped = new_ped.make_ca_pedigree(h_ped)
-        mutn_ped = new_ped.make_mutn_pedigree(ca_ped)
+        founder_ca = new_ped.get_founder_ca(h_ped)
+        founder_mutns = new_ped.get_founder_mutns(founder_ca)
         founders = []
-        for person in mutn_ped:
+        for person in founder_mutns:
             if person[17] > 0:
                 founder = person
                 founders.append(person)
         if len(founders) > 0:
             for person in founders:
-                pass_mutn = new_ped.pass_founder_mutn(person, mutn_ped)
-                pedigrees.append(pass_mutn)
+                pass_mutn = new_ped.pass_founder_mutn(person, founder_mutns)
+            ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+            pedigrees.append(ca_ped)
         else:
-            pedigrees.append(mutn_ped)        
+            ca_ped = new_ped.make_ca_pedigree(founder_mutns)
+            pedigrees.append(ca_ped)
         x += 1
     new_sim = Pedigree()
     w_ped = new_sim.write_pedigree(pedigrees)
