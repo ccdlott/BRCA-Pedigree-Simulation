@@ -1037,7 +1037,6 @@ def run_simulation(num_trials):
         founders = []
         for person in founder_mutns:
             if person[17] > 0:
-                founder = person
                 founders.append(person)
         if len(founders) > 0:
             for person in founders:
@@ -1051,4 +1050,31 @@ def run_simulation(num_trials):
     new_sim = Pedigree()
     w_ped = new_sim.write_pedigree(pedigrees)
 
-run_simulation(500)            
+#run_simulation(500)            
+
+def run_ca_sims(num_trials):
+    pedigrees = []
+    x = 1
+    while x <= num_trials:
+        new_ped = CancerPedigree()
+        h_ped = new_ped.make_healthy_pedigree()
+        founder_ca = new_ped.get_founder_ca(h_ped)
+        founder_mutns = new_ped.get_founder_mutns(founder_ca)
+        founders = []
+        for person in founder_mutns:
+            if person[17] > 0:
+                founders.append(person)
+        if len(founders) > 0:
+            for person in founders:
+                pass_mutn = new_ped.pass_founder_mutn(person,
+                                                founder_mutns)
+            ca_ped = new_ped.make_ca_pedigree(founder_mutns)
+            pedigrees.append(ca_ped)
+            x += 1
+        new_sim = Pedigree()
+        w_ped = new_sim.write_pedigree(pedigrees)
+
+#run_ca_sims(25)
+
+                
+                
