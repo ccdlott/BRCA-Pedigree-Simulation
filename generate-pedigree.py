@@ -422,6 +422,11 @@ class Pedigree(object):
         [Fam ID, Name, Target, IndID, FathID, MothID, Sex, Twin, Dead,
         Age, Birth Year, BrCa_1, BrCa_2, OvCa, ProCa, PanCa, G Test, Mutn,
         Ashkn, ER, PR, HER2, CK14, CK56]
+
+        Order of family members is paternal grandfather, paternal
+        grandmother, materal grandfather, maternal grandmother, father,
+        mother, father's siblings, mother's siblings, proband's
+        siblings, proband
         '''
         pedigree = []
         proband = self.init_proband()
@@ -947,22 +952,22 @@ class CancerPedigree(Pedigree):
         return mutn_pedigree
 
 ##to debug pass_founder_mutn
-# new_ped = CancerPedigree()
-# x = False
-# while x == False:
-#     h_pedigree = new_ped.make_healthy_pedigree()
-#     ca_pedigree = new_ped.get_founder_ca(h_pedigree)
-#     mutn_pedigree = new_ped.get_founder_mutns(ca_pedigree)
-#     for person in mutn_pedigree:
-#         if person[17] > 0:
-#             founder = person
-#             pass_mutn = new_ped.pass_founder_mutn(founder,
-#                                                   mutn_pedigree)
-#             length = len(pass_mutn)
-#             if pass_mutn[1][17] > 0:
-#                 if pass_mutn[length-1][17] > 0:
-#                     x = True
-#                     w_mutn_ped = new_ped.write_pedigree([pass_mutn])
+#new_ped = CancerPedigree()
+#x = False
+#while x == False:
+#    h_pedigree = new_ped.make_healthy_pedigree()
+#    ca_pedigree = new_ped.get_founder_ca(h_pedigree)
+#    mutn_pedigree = new_ped.get_founder_mutns(ca_pedigree)
+#    for person in mutn_pedigree:
+#        if person[17] > 0:
+#            founder = person
+#            pass_mutn = new_ped.pass_founder_mutn(founder,
+#                                                  mutn_pedigree)
+#            length = len(pass_mutn)
+#            if pass_mutn[1][17] > 0:
+#                if pass_mutn[length-1][17] > 0:
+#                    x = True
+#                    w_mutn_ped = new_ped.write_pedigree([pass_mutn])
 
     def make_ca_pedigree(self, mutn_pedigree):
         '''
@@ -988,25 +993,203 @@ class CancerPedigree(Pedigree):
             else:
                 cancer_pedigree.append(person)
         return cancer_pedigree
-    
+
 ##to debug make_ca_pedigree
-# x = False
-# while x == False:
-#     new_ped = CancerPedigree()
-#     h_ped= new_ped.make_healthy_pedigree()
-#     founder_ca = new_ped.get_founder_ca(h_ped)
-#     founder_mutns = new_ped.get_founder_mutns(founder_ca)
-#     for person in founder_mutns:
-#         if person[17] > 0:
-#             founder = person
-#             pass_mutn = new_ped.pass_founder_mutn(founder,
-#                                                   founder_mutns)
-#     ca_ped = new_ped.make_ca_pedigree(pass_mutn)
-#     wo_founders = ca_ped[4:]
-#     for person in wo_founders:
-#         if person[11] > 0 or person[13] > 0:
-#             x = True
-#             w_ca_ped = new_ped.write_pedigree([ca_ped])
+#x = False
+#while x == False:
+#    new_ped = CancerPedigree()
+#    h_ped = new_ped.make_healthy_pedigree()
+#    founder_ca = new_ped.get_founder_ca(h_ped)
+#    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
+#    for person in founder_mutns:
+#        if person[17] > 0:
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                w_ca_ped = new_ped.write_pedigree([ca_ped])
+ 
+    def get_family_history(self, ca_pedigree):
+        '''
+        Computes summary family history for the proband in a pedigree
+        and returns a list in the following order (variable descriptions
+        also specified  after colon:
+        fhx: family history known/present, 1 = known, 0 = unknown
+        br_ca_ls: number of first degree relatives with female breast cancer
+            diagnosis at age under 50
+        br_ca_gr: number of first degree relatives with breast
+            cancer diagnosis at age 50 or greater  
+        ov_ca: number of first degree relatives with ovarian cancer
+        m2_br_ca: number of maternal second degree relatives with female
+            breast cancer
+        p2_br_ca: number of paternal second degree relatives with female
+            breast cancer
+        m2_ov_ca: number of materal second degree relatives with ovarian
+            cancer
+        p2_ov_ca: number of paternal second degree relatives with
+            ovarian cancer
+        male_br_ca: number of first or second degree relatives with male
+            breast cancer, always 0 for this simulation
+        pan_ca: number of first of second degree relatives with
+            pancreatic cancer, always 0 for this simulation
+        '''
+        family_hx = []
+        ped_length = len(ca_pedigree)
+        proband = ca_pedigree.pop(ped_length-1)
+        fam_id = proband[0]
+        ind_id = proband[3]
+        first_deg_rels = []
+        m_second_deg_rels = []
+        p_second_deg_rels = []
+        pro_fath_parents = ca_pedigree[:2]
+        for person in pro_fath_parents:
+            p_second_deg_rels.append(person)
+        pro_moth_parents = ca_pedigree[2:4]
+        for person in pro_moth_parents:
+            m_second_deg_rels.append(person)
+        pro_parents = ca_pedigree[4:6]
+        for person in pro_parents:
+            first_deg_rels.append(person)
+        pro_fath_id = proband[4]
+        pro_sibs = []
+        for person in ca_pedigree:
+            fath_id = person[4]
+            if fath_id == pro_fath_id:
+                pro_sibs.append(person)
+        for person in pro_sibs:
+            first_deg_rels.append(person)
+        pro_fath_sibs = []
+        pro_fath_fath_id = pro_fath_parents[0][3]
+        for person in ca_pedigree:
+            fath_id = person[4]
+            person_id = person[3]
+            if fath_id == pro_fath_fath_id and person_id != pro_parents[0][3]:
+                pro_fath_sibs.append(person)
+        for person in pro_fath_sibs:
+            p_second_deg_rels.append(person)
+        pro_moth_sibs = []
+        pro_moth_fath_id = pro_moth_parents[0][3]
+        for person in ca_pedigree:
+            fath_id = person[4]
+            person_id = person[3]
+            if fath_id == pro_moth_fath_id and person_id != pro_parents[1][3]:
+                pro_moth_sibs.append(person)
+        for person in pro_moth_sibs:
+            m_second_deg_rels.append(person)
+        fhx = 1
+        br_ca_ls = 0
+        br_ca_gr = 0
+        ov_ca = 0
+        for person in first_deg_rels:
+            br_ca_status = person[11]
+            ov_ca_status = person[13]
+            if br_ca_status > 0 and br_ca_status < 50:
+                br_ca_ls += 1
+            if br_ca_status >= 50:
+                br_ca_gr += 1
+            if ov_ca_status > 0:
+                ov_ca += 1
+        m2_br_ca = 0
+        m2_ov_ca = 0
+        for person in m_second_deg_rels:
+            br_ca_status = person[11]
+            ov_ca_status = person[13]
+            if br_ca_status > 0:
+                m2_br_ca += 1
+            if ov_ca_status > 0:
+                m2_ov_ca += 1
+        p2_br_ca = 0
+        p2_ov_ca = 0
+        for person in p_second_deg_rels:
+           br_ca_status = person[11]
+           ov_ca_status = person[13]
+           if br_ca_status > 0:
+               p2_br_ca += 1
+           if ov_ca_status > 0:
+               p2_ov_ca += 1
+        male_br_ca = 0
+        pan_ca = 0
+        var_list = [fam_id, ind_id, fhx, br_ca_ls, br_ca_gr, ov_ca, m2_br_ca,
+                    p2_br_ca, m2_ov_ca, p2_ov_ca, male_br_ca, pan_ca]
+        for var in var_list:
+            family_hx.append(var)
+        ca_pedigree.append(proband)
+        return family_hx
+
+##to debug get_family_hx
+#x = False
+#while x == False:
+#    new_ped = CancerPedigree()
+#    h_ped = new_ped.make_healthy_pedigree()
+#    founder_ca = new_ped.get_founder_ca(h_ped)
+#    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
+#    for person in founder_mutns:
+#        if person[17] > 0:
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,
+#                                                  founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                fam_hx = new_ped.get_family_history(ca_ped)
+#                w_ped = new_ped.write_pedigree([ca_ped])
+#                print fam_hx
+
+    def write_family_history(self, fam_hxs):
+        '''
+        Write family history information for multiple families given
+        list of family histories and output information to file 
+        familyhistory.txt 
+        '''
+        new_f = "familyhistory.txt"
+        my_hx = open(new_f, "w")
+        my_hx.write("Summary family history information \n")
+        headers = ["FamID", "ProID", "FamHx", "ls1BrCa", "gr1BrCa", "1OvCa", "m2BrCa",
+                   "p2BrCa", "m2OvCa", "p2OvCa", "maleBr", "PanCa"]
+        for item in headers:
+            my_hx.write("%s\t" % item)
+        my_hx.write("\n")
+        for fam in fam_hxs:
+            for value in fam:
+                my_hx.write("%s\t" % value)
+            my_hx.write("\n")
+        my_hx.close()
+
+##to debug write_family_history
+#x = False
+#while x == False:
+#    new_ped = CancerPedigree()
+#    h_ped = new_ped.make_healthy_pedigree()
+#    founder_ca = new_ped.get_founder_ca(h_ped)
+#    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
+#    for person in founder_mutns:
+#        if person[17] > 0:
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,
+#                                                  founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                fam_hx = new_ped.get_family_history(ca_ped)
+#                w_ped = new_ped.write_pedigree([ca_ped])
+#                w_hx = new_ped.write_family_history([fam_hx])
+
 
 #simulation
 def run_simulation(num_trials):
@@ -1049,6 +1232,7 @@ def run_simulation(num_trials):
         x += 1
     new_sim = Pedigree()
     w_ped = new_sim.write_pedigree(pedigrees)
+    return pedigrees
 
 #run_simulation(500)            
 
@@ -1075,13 +1259,12 @@ def run_ca_sims(num_trials):
             for person in founders:
                 pass_mutn = new_ped.pass_founder_mutn(person,
                                                 founder_mutns)
-            ca_ped = new_ped.make_ca_pedigree(founder_mutns)
+            ca_ped = new_ped.make_ca_pedigree(pass_mutn)
             pedigrees.append(ca_ped)
             x += 1
-        new_sim = Pedigree()
-        w_ped = new_sim.write_pedigree(pedigrees)
+    new_sim = Pedigree()
+    w_ped = new_sim.write_pedigree(pedigrees)
+    return pedigrees
 
-#run_ca_sims(25)
+#run_ca_sims(5)
 
-                
-                
