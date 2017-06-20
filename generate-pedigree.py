@@ -1001,17 +1001,19 @@ class CancerPedigree(Pedigree):
 #    h_ped = new_ped.make_healthy_pedigree()
 #    founder_ca = new_ped.get_founder_ca(h_ped)
 #    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
 #    for person in founder_mutns:
 #        if person[17] > 0:
-#            founder = person
-#            pass_mutn = new_ped.pass_founder_mutn(founder,
-#                                                  founder_mutns)
-#    ca_ped = new_ped.make_ca_pedigree(pass_mutn)
-#    wo_founders = ca_ped[4:]
-#    for person in wo_founders:
-#        if person[11] > 0 or person[13] > 0:
-#            x = True
-#            w_ca_ped = new_ped.write_pedigree([ca_ped])
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                w_ca_ped = new_ped.write_pedigree([ca_ped])
  
     def get_family_history(self, ca_pedigree):
         '''
@@ -1040,6 +1042,8 @@ class CancerPedigree(Pedigree):
         family_hx = []
         ped_length = len(ca_pedigree)
         proband = ca_pedigree.pop(ped_length-1)
+        fam_id = proband[0]
+        ind_id = proband[3]
         first_deg_rels = []
         m_second_deg_rels = []
         p_second_deg_rels = []
@@ -1111,33 +1115,81 @@ class CancerPedigree(Pedigree):
                p2_ov_ca += 1
         male_br_ca = 0
         pan_ca = 0
-        var_list = [fhx, br_ca_ls, br_ca_gr, ov_ca, m2_br_ca,
+        var_list = [fam_id, ind_id, fhx, br_ca_ls, br_ca_gr, ov_ca, m2_br_ca,
                     p2_br_ca, m2_ov_ca, p2_ov_ca, male_br_ca, pan_ca]
         for var in var_list:
             family_hx.append(var)
         ca_pedigree.append(proband)
         return family_hx
 
-#to debug get_family_hx
+##to debug get_family_hx
 #x = False
 #while x == False:
-#     new_ped = CancerPedigree()
-#     h_ped= new_ped.make_healthy_pedigree()
-#     founder_ca = new_ped.get_founder_ca(h_ped)
-#     founder_mutns = new_ped.get_founder_mutns(founder_ca)
-#     for person in founder_mutns:
-#         if person[17] > 0:
-#            founder = person
-#            pass_mutn = new_ped.pass_founder_mutn(founder,
-#                                                   founder_mutns)
-#     ca_ped = new_ped.make_ca_pedigree(pass_mutn)
-#     wo_founders = ca_ped[4:]
-#     for person in wo_founders:
-#         if person[11] > 0 or person[13] > 0:
-#             x = True
-#             fam_hx = new_ped.get_family_history(ca_ped)
-#             w_ped = new_ped.write_pedigree([ca_ped])
-#print fam_hx
+#    new_ped = CancerPedigree()
+#    h_ped = new_ped.make_healthy_pedigree()
+#    founder_ca = new_ped.get_founder_ca(h_ped)
+#    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
+#    for person in founder_mutns:
+#        if person[17] > 0:
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,
+#                                                  founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                fam_hx = new_ped.get_family_history(ca_ped)
+#                w_ped = new_ped.write_pedigree([ca_ped])
+#                print fam_hx
+
+    def write_family_history(self, fam_hxs):
+        '''
+        Write family history information for multiple families given
+        list of family histories and output information to file 
+        familyhistory.txt 
+        '''
+        new_f = "familyhistory.txt"
+        my_hx = open(new_f, "w")
+        my_hx.write("Summary family history information \n")
+        headers = ["FamID", "ProID", "FamHx", "ls1BrCa", "gr1BrCa", "1OvCa", "m2BrCa",
+                   "p2BrCa", "m2OvCa", "p2OvCa", "maleBr", "PanCa"]
+        for item in headers:
+            my_hx.write("%s\t" % item)
+        my_hx.write("\n")
+        for fam in fam_hxs:
+            for value in fam:
+                my_hx.write("%s\t" % value)
+            my_hx.write("\n")
+        my_hx.close()
+
+##to debug write_family_history
+#x = False
+#while x == False:
+#    new_ped = CancerPedigree()
+#    h_ped = new_ped.make_healthy_pedigree()
+#    founder_ca = new_ped.get_founder_ca(h_ped)
+#    founder_mutns = new_ped.get_founder_mutns(founder_ca)
+#    founders = []
+#    for person in founder_mutns:
+#        if person[17] > 0:
+#            founders.append(person)
+#    if len(founders) > 0:
+#        for person in founders:
+#            pass_mutn = new_ped.pass_founder_mutn(person,
+#                                                  founder_mutns)
+#        ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+#        wo_founders = ca_ped[4:]
+#        for person in wo_founders:
+#            if person[11] > 0 or person[13] > 0:
+#                x = True
+#                fam_hx = new_ped.get_family_history(ca_ped)
+#                w_ped = new_ped.write_pedigree([ca_ped])
+#                w_hx = new_ped.write_family_history([fam_hx])
+
 
 #simulation
 def run_simulation(num_trials):
@@ -1215,5 +1267,4 @@ def run_ca_sims(num_trials):
     return pedigrees
 
 #run_ca_sims(5)
-
 
