@@ -1236,6 +1236,48 @@ def run_simulation(num_trials):
 
 #run_simulation(500)            
 
+def run_sim_fhx(num_trials):
+    '''
+    Runs simulation according to specifications given in run_simulation
+    but also produces a file with the summary family history for the
+    proband in each pedigree
+
+    Returns a list including all the pedigree information followed by
+    the summary family history information
+    '''
+    pedigrees = []
+    fam_hxs = []
+    x = 1
+    while x <= num_trials:
+        new_ped = CancerPedigree()
+        h_ped = new_ped.make_healthy_pedigree()
+        founder_ca = new_ped.get_founder_ca(h_ped)
+        founder_mutns = new_ped.get_founder_mutns(founder_ca)
+        founders = []
+        for person in founder_mutns:
+            if person[17] > 0:
+                founders.append(person)
+        if len(founders) > 0:
+            for person in founders:
+                pass_mutn = new_ped.pass_founder_mutn(person,
+                                                      founder_mutns)
+            ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+            pedigrees.append(ca_ped)
+            fam_hx = new_ped.get_family_history(ca_ped)
+            fam_hxs.append(fam_hx)
+        else:
+            ca_ped = new_ped.make_ca_pedigree(founder_mutns)
+            pedigrees.append(ca_ped)
+            fam_hx = new_ped.get_family_history(ca_ped)
+            fam_hxs.append(fam_hx)
+        x += 1
+    new_sim = CancerPedigree()
+    w_ped = new_sim.write_pedigree(pedigrees)
+    w_fhx = new_sim.write_family_history(fam_hxs)
+    return [pedigrees, fam_hxs]
+
+#run_sim_fhx(5)
+
 def run_ca_sims(num_trials):
     '''
     Does the same thing as the function run simulation but only
@@ -1268,3 +1310,38 @@ def run_ca_sims(num_trials):
 
 #run_ca_sims(5)
 
+def run_ca_sim_fhx(num_trials):
+    '''
+    Runs simulations with same specifications in run_ca_sim but also
+    produces a file with the summary family history for the proband in
+    each pedigree
+
+    Return a list of the pedigrees followed by the family histories
+    '''
+    pedigrees = []
+    fam_hxs = []
+    x = 1
+    while x <= num_trials:
+        new_ped = CancerPedigree()
+        h_ped = new_ped.make_healthy_pedigree()
+        founder_ca = new_ped.get_founder_ca(h_ped)
+        founder_mutns = new_ped.get_founder_mutns(founder_ca)
+        founders = []
+        for person in founder_mutns:
+            if person[17] > 0:
+                founders.append(person)
+        if len(founders) > 0:
+            for person in founders:
+                pass_mutn = new_ped.pass_founder_mutn(person,
+                                                      founder_mutns)
+            ca_ped = new_ped.make_ca_pedigree(pass_mutn)
+            pedigrees.append(ca_ped)
+            fam_hx = new_ped.get_family_history(ca_ped)
+            fam_hxs.append(fam_hx)
+            x += 1
+    new_sim = CancerPedigree()
+    w_ped = new_sim.write_pedigree(pedigrees)
+    w_fhx = new_sim.write_family_history(fam_hxs)
+    return [pedigrees, fam_hxs]
+
+#run_ca_sim_fhx(5)
